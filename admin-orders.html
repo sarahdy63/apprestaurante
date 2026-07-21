@@ -1,1 +1,84 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gastro Admin | Pedidos</title><link rel="stylesheet" href="css/styles.css"></head><body class="admin-body"><div class="admin-shell"><aside class="sidebar"><div class="logo">GASTRO</div><a class="side-link active" href="admin-orders.html">Pedidos</a><a class="side-link" href="admin-menu.html">Menú</a><a class="side-link" href="index.html">Ver sitio</a><a class="side-link" href="admin-login.html">Cerrar sesión</a></aside><main class="admin-main"><div class="admin-top"><div><span class="eyebrow">Admin dashboard</span><h1>Gestión de pedidos</h1><p class="small">Supervisa y actualiza el flujo de pedidos en tiempo real.</p></div><button class="btn btn-primary">+ Nuevo pedido</button></div><section class="stats"><div class="panel stat"><span>Hoy</span><strong>124</strong>Pedidos</div><div class="panel stat"><span>Por preparar</span><strong>18</strong>Pendientes</div><div class="panel stat"><span>En camino</span><strong>6</strong>Rutas</div><div class="panel stat"><span>Ventas del día</span><strong>$4.250.000</strong></div></section><div class="panel table-wrap"><table class="data-table"><thead><tr><th>Pedido</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Estado</th><th>Acción</th></tr></thead><tbody><tr><td>#GD-82934</td><td>Ana García</td><td>Gourmet Burger, papas</td><td>$45.000</td><td><span class="status pending">Preparando</span></td><td>Ver</td></tr><tr><td>#GD-82935</td><td>Carlos Mendoza</td><td>Truffle Swiss, gaseosa</td><td>$52.500</td><td><span class="status route">En camino</span></td><td>Ver</td></tr><tr><td>#GD-82936</td><td>Luisa Fernández</td><td>Salchipapa Especial</td><td>$28.000</td><td><span class="status pending">Recibido</span></td><td>Ver</td></tr><tr><td>#GD-82937</td><td>Juan Pérez</td><td>Picada Imperial</td><td>$58.000</td><td><span class="status done">Entregado</span></td><td>Ver</td></tr></tbody></table></div></main></div><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Gastro Admin | Pedidos</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="admin-body">
+    <div class="admin-shell">
+        <aside class="sidebar">
+            <div class="logo">GASTRO</div><a class="side-link active" href="admin-orders.html">Pedidos</a><a
+                class="side-link" href="admin-menu.html">Menú</a><a class="side-link" href="index.html">Ver sitio</a><a
+                class="side-link" href="admin-login.html">Cerrar sesión</a>
+        </aside>
+        <main class="admin-main">
+            <div class="admin-top">
+                <div><span class="eyebrow">Admin dashboard</span>
+                    <h1>Gestión de pedidos</h1>
+                    <p class="small">Supervisa y actualiza el flujo de pedidos en tiempo real.</p>
+                </div><button class="btn btn-primary">+ Nuevo pedido</button>
+            </div>
+            <section class="stats">
+                <div class="panel stat"><span>Hoy</span><strong>124</strong>Pedidos</div>
+                <div class="panel stat"><span>Por preparar</span><strong>18</strong>Pendientes</div>
+                <div class="panel stat"><span>En camino</span><strong>6</strong>Rutas</div>
+                <div class="panel stat"><span>Ventas del día</span><strong>$4.250.000</strong></div>
+            </section>
+            <div class="panel table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Cliente</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#GD-82934</td>
+                            <td>Ana García</td>
+                            <td>Gourmet Burger, papas</td>
+                            <td>$45.000</td>
+                            <td><span class="status pending">Preparando</span></td>
+                            <td>Ver</td>
+                        </tr>
+                        <tr>
+                            <td>#GD-82935</td>
+                            <td>Carlos Mendoza</td>
+                            <td>Truffle Swiss, gaseosa</td>
+                            <td>$52.500</td>
+                            <td><span class="status route">En camino</span></td>
+                            <td>Ver</td>
+                        </tr>
+                        <tr>
+                            <td>#GD-82936</td>
+                            <td>Luisa Fernández</td>
+                            <td>Salchipapa Especial</td>
+                            <td>$28.000</td>
+                            <td><span class="status pending">Recibido</span></td>
+                            <td>Ver</td>
+                        </tr>
+                        <tr>
+                            <td>#GD-82937</td>
+                            <td>Juan Pérez</td>
+                            <td>Picada Imperial</td>
+                            <td>$58.000</td>
+                            <td><span class="status done">Entregado</span></td>
+                            <td>Ver</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
