@@ -1,3 +1,23 @@
-function adminLogin(e) { e.preventDefault(); location.href = 'admin-orders.html' }
-function addProduct(e) { e.preventDefault(); const name = document.querySelector('#productName').value; const category = document.querySelector('#productCategory').value; const price = document.querySelector('#productPrice').value; const tbody = document.querySelector('#adminProducts'); tbody.insertAdjacentHTML('beforeend', `<tr><td>${name}</td><td>${category}</td><td>${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(price)}</td><td>Editar · Eliminar</td></tr>`); document.querySelector('#productForm').reset(); closeModal('productModal') }
-document.addEventListener('DOMContentLoaded', () => { document.querySelector('#adminLogin')?.addEventListener('submit', adminLogin); document.querySelector('#productForm')?.addEventListener('submit', addProduct) });
+function adminLogin(e) {
+  e.preventDefault();
+  location.href = "admin-orders.html";
+}
+function addProduct(e) {
+  e.preventDefault();
+  const name = document.querySelector("#productName").value;
+  const category = document.querySelector("#productCategory").value;
+  const price = document.querySelector("#productPrice").value;
+  const tbody = document.querySelector("#adminProducts");
+  tbody.insertAdjacentHTML(
+    "beforeend",
+    `<tr><td>${name}</td><td>${category}</td><td>${new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(price)}</td><td>Editar · Eliminar</td></tr>`,
+  );
+  document.querySelector("#productForm").reset();
+  closeModal("productModal");
+}
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelector("#adminLogin")?.addEventListener("submit", adminLogin);
+  document
+    .querySelector("#productForm")
+    ?.addEventListener("submit", addProduct);
+});
