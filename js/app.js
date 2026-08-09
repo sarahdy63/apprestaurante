@@ -19,7 +19,7 @@ const PRODUCTS = [
 
   {
     id: 3,
-    name: "Spicy Avocado",
+    name: " Avocado",
     category: "Hamburguesas",
     price: 28000,
     img: "https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=900&q=80",
@@ -28,7 +28,7 @@ const PRODUCTS = [
 
   {
     id: 4,
-    name: "Bacon Deluxe",
+    name: " El Bacon",
     category: "Hamburguesas",
     price: 32000,
     img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=900&q=80",
@@ -58,24 +58,16 @@ const PRODUCTS = [
     name: "Limonada de Coco",
     category: "Bebidas",
     price: 9000,
-    img: "https://images.unsplash.com/photo-1523677011781-c91d1bbe2f9f?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-limonada_coco.jpg",
     desc: "Refrescante mezcla cremosa preparada al momento.",
   },
 
-  {
-    id: 8,
-    name: "Extra Queso",
-    category: "Toppings",
-    price: 3000,
-    img: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=900&q=80",
-    desc: "Porción adicional de queso fundido.",
-  },
   {
     id: 9,
     name: "La Cachona",
     category: "Hamburguesas",
     price: 30000,
-    img: "https://www.magnific.com/es/foto-gratis/juicy-cheeseburger-tabla-madera-rustica_269342352.htm#fromView=keyword&page=1&position=0&uuid=aa759b91-4a73-4531-b752-b7dd78e0224b&query=Hamburguesa",
+    img: "assets/img/Hamburguesa-la_cachona.jpg",
     desc: "Carne de res a la parrilla, doble queso derretido, tocineta crocante, salsa picante casera y cebolla caramelizada.",
   },
   {
@@ -83,7 +75,7 @@ const PRODUCTS = [
     name: "La Infiel",
     category: "Hamburguesas",
     price: 22000,
-    img: "https://es.pinterest.com/pin/1088041591236464004/",
+    img: "assets/img/Hamburguesa-la_infiel.jpg",
     desc: "Carne de res y pollo apanado, servida con salsa BBQ y salsa de ajo.",
   },
   {
@@ -91,7 +83,7 @@ const PRODUCTS = [
     name: "La Chismosa",
     category: "Hamburguesas",
     price: 27000,
-    img: "https://es.dreamstime.com/deliciosa-hamburguesa-de-huevos-generada-por-inteligencia-artificial-la-un-jugoso-plato-carne-res-coronado-con-queso-crujiente-image274870113",
+    img: "assets/img/Hamburguesa-la_chismosa.jpg",
     desc: "Carne de res, tocineta, queso, piña, jalapeño, huevo frito y cebolla morada.",
   },
   {
@@ -99,7 +91,7 @@ const PRODUCTS = [
     name: "La Arrepentida",
     category: "Hamburguesas",
     price: 25000,
-    img: "https://www.magnific.com/es/imagen-ia-gratis/hamburguesa-queso-tocino-doble_414996129.htm#fromView=keyword&page=1&position=26&uuid=aa759b91-4a73-4531-b752-b7dd78e0224b&query=Hamburguesa",
+    img: "assets/img/hamburguesa-la_arrepentida.jpg",
     desc: "Doble carne, triple queso, tocineta y salsa de la casa.",
   },
   {
@@ -107,7 +99,7 @@ const PRODUCTS = [
     name: "La Patacona",
     category: "Hamburguesas",
     price: 20000,
-    img: "https://www.cocinarico.es/receta/hamburguesa-de-platano",
+    img: "assets/img/Hamburguesa-la_patacona.jpg",
     desc: "Dos patacones crocantes, carne de res a la parrilla, queso, tomate y cebolla.",
   },
   {
@@ -115,7 +107,7 @@ const PRODUCTS = [
     name: "La Compinche",
     category: "Picadas",
     price: 58000,
-    img: "https://stock.adobe.com/es/search?k=picada+colombiana&asset_id=513841842",
+    img: "assets/img/Picadas-la_compinche.jpg",
     desc: "Chorizo, morcilla, chicharrón, papa criolla, arepa y patacones.",
   },
   {
@@ -123,7 +115,7 @@ const PRODUCTS = [
     name: "La Parrandera",
     category: "Picadas",
     price: 58000,
-    img: "https://stock.adobe.com/es/search?k=picada+colombiana&asset_id=1813372896",
+    img: "assets/img/Picadas-la_parrandera.jpg",
     desc: "Carne de res, pollo, chorizo, chicharrón, morcilla, papa criolla, yuca frita y patacones.",
   },
   {
@@ -131,7 +123,7 @@ const PRODUCTS = [
     name: "La Campesina",
     category: "Picadas",
     price: 58000,
-    img: "https://stock.adobe.com/es/search?k=picada+colombiana&asset_id=433829729",
+    img: "assets/img/Picadas-la_campesina.jpg",
     desc: "Chicharrón, chorizo, arepa, papa criolla, yuca frita y suero costeño.",
   },
   {
@@ -139,7 +131,7 @@ const PRODUCTS = [
     name: "La Corraleja",
     category: "Picadas",
     price: 58000,
-    img: "https://es.pinterest.com/pin/817614507392122596/",
+    img: "assets/img/Picadas-la_corraleja",
     desc: "Costilla de cerdo, chorizo, chicharrón, plátano maduro, papa criolla y guacamole.",
   },
   {
@@ -147,7 +139,7 @@ const PRODUCTS = [
     name: "La Fondera",
     category: "Picadas",
     price: 58000,
-    img: "https://es.pinterest.com/pin/848717492321681995/",
+    img: "assets/img/Picadas-la_fondera.jpg",
     desc: "Carne de res, chicharrón, arepa, patacón y ensalada fresca.",
   },
   {
@@ -155,7 +147,7 @@ const PRODUCTS = [
     name: "La Tropilla",
     category: "Picadas",
     price: 58000,
-    img: "https://es.pinterest.com/pin/983403268658882229/",
+    img: "assets/img/Picadas-la_tropilla.jpg",
     desc: "Carne de res, pollo, chorizo, morcilla, chicharrón, papa criolla, patacones y yuca frita.",
   },
   {
@@ -163,7 +155,7 @@ const PRODUCTS = [
     name: "La Clásica",
     category: "Salchipapas",
     price: 12000,
-    img: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Salchipapas-la_clasica.jpg",
     desc: "Papas fritas, salchicha, queso fundido y salsas de la casa (rosada, tomate, mostaza).",
   },
   {
@@ -171,7 +163,7 @@ const PRODUCTS = [
     name: "La Cargada",
     category: "Salchipapas",
     price: 16000,
-    img: "https://www.infobae.com/colombia/2024/11/25/aprenda-a-preparar-el-mejor-salchipapa-de-colombia-salchipapa-costeno-en-una-sencilla-receta/",
+    img: "assets/img/Salchipapas-la_cargada.jpg",
     desc: "Papas fritas, salchicha, tocineta, queso fundido, maíz tierno y salsas.",
   },
   {
@@ -179,7 +171,7 @@ const PRODUCTS = [
     name: "La Ranchera",
     category: "Salchipapas",
     price: 15000,
-    img: "https://lacocinalatina.club/recetas/salchipapas/",
+    img: "assets/img/Salchipapas-la_ranchera.jpg",
     desc: "Papas fritas, salchicha, chorizo, cebolla caramelizada, queso fundido y salsa picante.",
   },
   {
@@ -187,7 +179,7 @@ const PRODUCTS = [
     name: "La Tropical",
     category: "Salchipapas",
     price: 17000,
-    img: "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Salchipapas-la_tropical.jpg",
     desc: "Papas fritas, salchicha, piña asada, queso fundido y salsa de la casa.",
   },
   {
@@ -195,7 +187,7 @@ const PRODUCTS = [
     name: "La Completa",
     category: "Salchipapas",
     price: 19000,
-    img: "https://recetaselite.com/salchipapa/",
+    img: "assets/img/Salchipapas-la_completa.jpg",
     desc: "Papas fritas, salchicha, carne desmechada, tocineta, queso fundido, huevo frito y maíz.",
   },
   {
@@ -203,7 +195,7 @@ const PRODUCTS = [
     name: "La Criolla",
     category: "Salchipapas",
     price: 15000,
-    img: "https://bonviveur.com/es/recetas/salchipapas",
+    img: "assets/img/Salchipapas-la_criolla.jpg",
     desc: "Papas fritas, salchicha, papa criolla, queso fundido y hogao.",
   },
   {
@@ -211,7 +203,7 @@ const PRODUCTS = [
     name: "Coca-Cola",
     category: "Bebidas",
     price: 5000,
-    img: "https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-CocaCola.jpg",
     desc: "",
   },
   {
@@ -219,7 +211,7 @@ const PRODUCTS = [
     name: "Coca-Cola Zero",
     category: "Bebidas",
     price: 5000,
-    img: "https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-CocaCola_0.jpg",
     desc: "",
   },
   {
@@ -227,7 +219,7 @@ const PRODUCTS = [
     name: "Sprite",
     category: "Bebidas",
     price: 5000,
-    img: "https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-Sprite.jpg",
     desc: "",
   },
   {
@@ -235,7 +227,7 @@ const PRODUCTS = [
     name: "Colombiana",
     category: "Bebidas",
     price: 5000,
-    img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-Colombiana.jpg",
     desc: "",
   },
   {
@@ -243,15 +235,15 @@ const PRODUCTS = [
     name: "Soda de Frutos Rojos",
     category: "Bebidas",
     price: 6000,
-    img: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-frutos_rojos.jpg",
     desc: "",
   },
   {
     id: 31,
-    name: "Agua Cristal Sin Gas",
+    name: "Agua Cristal",
     category: "Bebidas",
     price: 4000,
-    img: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-agua_cristal.jpg",
     desc: "",
   },
   {
@@ -259,7 +251,7 @@ const PRODUCTS = [
     name: "Agua Cristal Con Gas",
     category: "Bebidas",
     price: 4500,
-    img: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-agua_gas.jpg",
     desc: "",
   },
   {
@@ -267,7 +259,7 @@ const PRODUCTS = [
     name: "Jugo Natural de Mora",
     category: "Bebidas",
     price: 8500,
-    img: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-jugo_mora.jpg",
     desc: "Mora fresca licuada con un toque de panela, preparada al momento.",
   },
   {
@@ -275,7 +267,7 @@ const PRODUCTS = [
     name: "Jugo Natural de fresa",
     category: "Bebidas",
     price: 8500,
-    img: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-fresa.jpg",
     desc: "Fresa recién licuada, refrescante y ligeramente dulce.",
   },
   {
@@ -283,7 +275,7 @@ const PRODUCTS = [
     name: "Jugo Natural de Maracuyá",
     category: "Bebidas",
     price: 9000,
-    img: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-maracuya.jpg",
     desc: "Maracuyá fresco, dulce y ácido, preparado al instante.",
   },
   {
@@ -291,7 +283,7 @@ const PRODUCTS = [
     name: "Limonada Natural",
     category: "Bebidas",
     price: 8000,
-    img: "https://images.unsplash.com/photo-1523677011781-c91d1bbe2f9f?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-limonada.jpg",
     desc: "Limón fresco recién exprimido, endulzado al gusto.",
   },
   {
@@ -299,7 +291,7 @@ const PRODUCTS = [
     name: "Jugo Natural de Mango",
     category: "Bebidas",
     price: 8500,
-    img: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Bebidas-mango.jpg",
     desc: "Mango maduro licuado, cremoso y dulce, preparado al momento.",
   },
   {
@@ -307,7 +299,7 @@ const PRODUCTS = [
     name: "Extra Queso Derretido",
     category: "Toppings",
     price: 4000,
-    img: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-queso.jpg",
     desc: "Porción adicional de queso fundido bien derretido.",
   },
   {
@@ -315,7 +307,7 @@ const PRODUCTS = [
     name: "Adición de Papas",
     category: "Toppings",
     price: 6000,
-    img: "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-papas.jpg",
     desc: "Porción extra de papas fritas crocantes.",
   },
   {
@@ -323,7 +315,7 @@ const PRODUCTS = [
     name: "Extra Carne para Hamburguesa",
     category: "Toppings",
     price: 8000,
-    img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-carne.jpg",
     desc: "Carne adicional de res, 100% Angus, a la parrilla.",
   },
   {
@@ -331,7 +323,7 @@ const PRODUCTS = [
     name: "Jalapeños",
     category: "Toppings",
     price: 3000,
-    img: "https://images.unsplash.com/photo-1583224964978-2257b960c592?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-jalapeños.jpg",
     desc: "Porción de jalapeños picantes en rodajas.",
   },
   {
@@ -339,7 +331,7 @@ const PRODUCTS = [
     name: "Queso Rallado",
     category: "Toppings",
     price: 3500,
-    img: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-queso_rallado.jpg",
     desc: "Porción de queso rallado para espolvorear.",
   },
   {
@@ -347,7 +339,7 @@ const PRODUCTS = [
     name: "Salsa de Ajo",
     category: "Toppings",
     price: 2000,
-    img: "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-salsa_ajo.jpg",
     desc: "Salsa cremosa de ajo, preparada en casa.",
   },
   {
@@ -355,7 +347,7 @@ const PRODUCTS = [
     name: "Salsa de Tomate",
     category: "Toppings",
     price: 1500,
-    img: "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-salsa_tomate.jpg",
     desc: "Salsa de tomate clásica.",
   },
   {
@@ -363,7 +355,7 @@ const PRODUCTS = [
     name: "Salsa de Maíz Dulce",
     category: "Toppings",
     price: 2500,
-    img: "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-salsa_maiz.jpg",
     desc: "Salsa cremosa preparada con maíz dulce.",
   },
   {
@@ -371,7 +363,7 @@ const PRODUCTS = [
     name: "Adición de Maíz Tierno",
     category: "Toppings",
     price: 3000,
-    img: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-maiz_tierno.jpg",
     desc: "Porción extra de maíz tierno.",
   },
   {
@@ -379,7 +371,7 @@ const PRODUCTS = [
     name: "Adición de carne  desmechada",
     category: "Toppings",
     price: 9000,
-    img: "assets/img/hamburguesa-la_arrepentida.jpg",
+    img: "assets/img/Topping-carne_desmechada.jpg",
     desc: "Porción adicional de carne desmechada jugosita.",
   },
 
@@ -388,7 +380,7 @@ const PRODUCTS = [
     name: "Cebolla Caramelizada",
     category: "Toppings",
     price: 3500,
-    img: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=900&q=80",
+    img: "assets/img/Topping-cebolla.jpg",
     desc: "Porción de cebolla caramelizada, dulce y suave.",
   },
 ];
