@@ -457,9 +457,34 @@ function openModal(id) {
 function closeModal(id) {
   document.getElementById(id)?.classList.remove("open");
 }
+function intentarConfirmar() {
+  if (!cart.length) {
+    alert("Tu carrito está vacío. Agrega productos antes de continuar.");
+    return;
+  }
+  openModal("checkoutModal");
+}
+function soloLetras(input) {
+  if (!input) return;
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, "");
+  });
+}
+function soloNumeros(input, maxLength) {
+  if (!input) return;
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/[^0-9]/g, "").slice(0, maxLength);
+  });
+}
+
 function confirmOrder(e) {
   e.preventDefault();
   const code = "GD-" + Math.floor(10000 + Math.random() * 89999);
+  const barrioSelect = document.querySelector("#barrioSelect");
+  const barrio =
+    barrioSelect.value === "otro"
+      ? document.querySelector("#barrioOtroInput").value
+      : barrioSelect.value;
   localStorage.setItem(
     "lastOrder",
     JSON.stringify({
@@ -467,6 +492,14 @@ function confirmOrder(e) {
       cart,
       total: cart.reduce((a, i) => a + i.price * i.qty, 0) + 6000,
       date: new Date().toISOString(),
+      cliente: {
+        nombre: document.querySelector("#nombreInput").value,
+        apellido: document.querySelector("#apellidoInput").value,
+        telefono: document.querySelector("#telefonoInput").value,
+        barrio,
+        direccion: document.querySelector("#direccionInput").value,
+        metodoPago: document.querySelector("#metodoPagoSelect").value,
+      },
     }),
   );
   cart = [];
@@ -494,6 +527,20 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .querySelector("#checkoutForm")
     ?.addEventListener("submit", confirmOrder);
+  soloLetras(document.querySelector("#nombreInput"));
+  soloLetras(document.querySelector("#apellidoInput"));
+  soloNumeros(document.querySelector("#telefonoInput"), 10);
+
+  const barrioSelect = document.querySelector("#barrioSelect");
+  const barrioOtroWrap = document.querySelector("#barrioOtroWrap");
+  const barrioOtroInput = document.querySelector("#barrioOtroInput");
+  barrioSelect?.addEventListener("change", () => {
+    const esOtro = barrioSelect.value === "otro";
+    barrioOtroWrap.style.display = esOtro ? "flex" : "none";
+    barrioOtroInput.required = esOtro;
+    if (!esOtro) barrioOtroInput.value = "";
+  });
+
   const order = JSON.parse(localStorage.getItem("lastOrder") || "null");
   if (order) {
     document
@@ -510,5 +557,16 @@ document.addEventListener("DOMContentLoaded", () => {
             `<div class="summary-item"><span>${i.qty} × ${i.name}</span><strong>${money(i.price * i.qty)}</strong></div>`,
         )
         .join("");
+    const deliveryBox = document.querySelector("#orderDeliveryInfo");
+    if (deliveryBox && order.cliente) {
+      const c = order.cliente;
+      deliveryBox.innerHTML = `
+        <p><strong>Cliente:</strong> ${c.nombre} ${c.apellido}</p>
+        <p><strong>Teléfono:</strong> ${c.telefono}</p>
+        <p><strong>Barrio:</strong> ${c.barrio}</p>
+        <p><strong>Dirección:</strong> ${c.direccion}</p>
+        <p><strong>Método de pago:</strong> ${c.metodoPago}</p>
+      `;
+    }
   }
 });
