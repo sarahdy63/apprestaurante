@@ -9,11 +9,10 @@
 
   <body class="login-page">
     <form id="adminLogin" class="panel login-card">
-      <div class="logo">GASTRO</div>
       <span class="eyebrow">Acceso administrador</span>
       <h1>Panel de control</h1>
       <p class="small">
-        Ingresa tus credenciales para administrar pedidos y productos.
+        
       </p>
       <div class="field">
         <label>Correo electrónico</label
@@ -21,13 +20,15 @@
           id="adminEmail"
           required
           type="email"
-          value="admin@gastro.com"
+          placeholder="correo@ejemplo.com"
         />
       </div>
       <div class="field">
         <label>Contraseña</label
-        ><input id="adminPassword" required type="password" value="123456" />
-      </div>
+        ><input id="adminPassword" required type="password" placeholder="••••••••" />
+        <p class="small link-right">
+        <a href="recuperar.html">¿Olvidaste tu contraseña?</a>
+      </p>
       <button class="btn btn-primary" style="width: 100%">
         Iniciar sesión →
       </button>

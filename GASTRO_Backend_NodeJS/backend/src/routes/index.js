@@ -13,9 +13,14 @@ const restaurant = require("../controllers/restaurantController");
 // Crea una instancia de router de Express.
 const router = express.Router();
 // Expone un endpoint simple para comprobar que la API está activa.
-router.get("/health", (req, res) => res.json({ status: "ok", service: "gastro-api" }));
+router.get("/health", (req, res) =>
+  res.json({ status: "ok", service: "gastro-api" }),
+);
 // Expone el inicio de sesión del administrador.
 router.post("/auth/login", auth.login);
+router.post("/auth/recuperarcontrasenia", auth.recuperarContrasenia);
+router.patch("/auth/cambiarcontrasenia", auth.cambiarContrasenia);
+router.post("/auth/verificarcodigo", auth.verificarCodigo);
 // Expone el catálogo público de productos activos.
 router.get("/products", products.list);
 // Expone la creación pública de pedidos desde el carrito.
@@ -41,4 +46,5 @@ router.get("/admin/dashboard/summary", requireAuth, orders.summary);
 // Protege la actualización de la información institucional.
 router.put("/admin/restaurant", requireAuth, restaurant.update);
 // Exporta el router para montarlo en /api.
+
 module.exports = router;

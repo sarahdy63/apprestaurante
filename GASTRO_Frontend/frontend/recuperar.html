@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Patacón Pisa'o | Recuperar contraseña</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body class="login-page">
+    <!-- PASO 1: correo -->
+    <form id="pasoCorreo" class="panel login-card">
+      <span class="eyebrow">Recuperar acceso</span>
+      <h1>Recuperar contraseña</h1>
+      <div class="field">
+        <label for="correo">Correo</label>
+        <input
+          id="correo"
+          required
+          type="email"
+          placeholder="correo@ejemplo.com"
+        />
+      </div>
+      <button class="btn btn-primary btn-block">Enviar código</button>
+      <p class="small"><a href="admin-login.html">Volver</a></p>
+    </form>
+    <!-- PASO 2: código (empieza oculto) -->
+    <form id="pasoCodigo" class="panel login-card" hidden>
+      <span class="eyebrow">Recuperar acceso</span>
+      <h1>Escribe tu código</h1>
+      <p class="small">Te lo enviamos al correo. Vence en 2 minutos.</p>
+      <div class="field">
+        <label for="codigo">Código de 6 números</label>
+        <input
+          id="codigo"
+          required
+          inputmode="numeric"
+          maxlength="6"
+          placeholder="123456"
+        />
+      </div>
+      <button class="btn btn-primary btn-block">Verificar código</button>
+      <p class="small"><a href="recuperar.html">Pedir uno nuevo</a></p>
+    </form>
+    <!-- PASO 3: contraseña nueva (empieza oculto) -->
+    <form id="pasoClave" class="panel login-card" hidden>
+      <span class="eyebrow">Recuperar acceso</span>
+      <h1>Nueva contraseña</h1>
+      <div class="field">
+        <label for="clave1">Contraseña nueva</label>
+        <input
+          id="clave1"
+          required
+          type="password"
+          minlength="8"
+          placeholder="Mínimo 8 caracteres"
+        />
+      </div>
+      <div class="field">
+        <label for="clave2">Repetir contraseña</label>
+        <input id="clave2" required type="password" minlength="8" />
+      </div>
+      <button class="btn btn-primary btn-block">Cambiar contraseña</button>
+    </form>
+
+    <script src="js/recuperar.js"></script>
+  </body>
+</html>

@@ -10,19 +10,32 @@
   <body>
     <header class="topbar">
       <div class="container nav">
-        <a class="logo" href="index.html">GASTRO</a>
-        <nav class="nav-links">
-          <a href="index.html">Inicio</a
-          ><a class="active" href="menu.html">Menú</a
-          ><a href="location.html">Ubicación</a
-          ><a href="about.html">Quiénes somos</a
-          ><a class="cart-link" href="#cart">
-            <span class="badge" data-cart-count>0</span></a>
-         
-        </nav>
+        <a class="logo" href="index.html">
+          <img src="assets/img/logo.png" alt="Gastro" class="logo-img" />
+        </a>
+        <div class="nav-right">
+          <nav class="nav-links">
+            <a href="index.html">Inicio</a
+            ><a class="active" href="menu.html">Menú</a
+            ><a href="location.html">Ubicación</a
+            ><a href="about.html">Quiénes somos</a>
+          </nav>
+          <a
+            href="tracking.html"
+            class="cart-access"
+            title="Ver mi pedido"
+            aria-label="Ver mi pedido"
+          >
+            <img src="assets/img/logo_carrito.png" alt="Carrito" />
+          </a>
           <span class="nav-divider"></span>
-           <a href="admin-login.html" class="admin-access" title="Acceso administrador" aria-label="Acceso administrador"></a>
-         </div>
+          <a
+            href="admin-login.html"
+            class="admin-access"
+            title="Acceso administrador"
+            aria-label="Acceso administrador"
+          ></a>
+        </div>
       </div>
     </header>
     <main class="section">
@@ -81,20 +94,26 @@
         </div>
         <form id="checkoutForm" class="form-grid">
           <div class="field">
-            <label>Nombre</label
-            ><input
+            <label>Nombre</label>
+            <input
               id="nombreInput"
               required
               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+              minlength="3"
+              maxlength="15"
+              title="Solo letras, entre 2 y 50 caracteres"
               placeholder="Sara"
             />
           </div>
           <div class="field">
-            <label>Apellido</label
-            ><input
+            <label>Apellido</label>
+            <input
               id="apellidoInput"
               required
               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+              minlength="2"
+              maxlength="10"
+              title="Solo letras, entre 2 y 50 caracteres"
               placeholder="Peña"
             />
           </div>
@@ -103,7 +122,10 @@
             <input
               id="telefonoInput"
               type="tel"
-              pattern="[0-9]{10}"
+              inputmode="numeric"
+              pattern="3[0-9]{9}"
+              maxlength="10"
+              title="Debe empezar por 3 "
               required
               placeholder="3241857875"
             />
@@ -130,22 +152,25 @@
           </div>
           <div class="field" id="barrioOtroWrap" style="display: none">
             <label>Especifica tu barrio</label>
-            <input id="barrioOtroInput" placeholder="Nombre del barrio" />
+            <input
+              id="barrioOtroInput"
+              maxlength="40"
+              placeholder="Nombre del barrio"
+            />
           </div>
           <div class="field full">
-            <label>Dirección / referencia</label
-            ><textarea
+            <label>Dirección / referencia</label>
+            <textarea
               id="direccionInput"
               required
               rows="3"
+              maxlength="30"
               placeholder="Calle, número y referencia"
             ></textarea>
           </div>
           <div class="field full">
-            <label>Método de pago</label
-            ><select id="metodoPagoSelect">
-              <option>Pago contra entrega</option>
-            </select>
+            <label>Método de pago</label>
+            <input id="metodoPagoSelect" value="Pago contra entrega" readonly />
           </div>
           <button class="btn btn-primary field full" type="submit">
             Confirmar pedido →

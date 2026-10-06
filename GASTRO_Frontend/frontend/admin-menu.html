@@ -1,68 +1,130 @@
 <!doctype html>
 <html lang="es">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Gastro Admin | Menú</title>
-    <link rel="stylesheet" href="css/styles.css">
-</head>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
 
-<body class="admin-body">
+  <body class="admin-body">
     <div class="admin-shell">
-        <aside class="sidebar">
-            <div class="logo">GASTRO</div><a class="side-link" href="admin-orders.html">Pedidos</a><a
-                class="side-link active" href="admin-menu.html">Menú</a><a class="side-link" href="index.html">Ver
-                sitio</a><a class="side-link" href="#" onclick="logout();return false">Cerrar sesión</a>
-        </aside>
-        <main class="admin-main">
-            <div class="admin-top">
-                <div><span class="eyebrow">Gestión de menú</span>
-                    <h1>Productos del restaurante</h1>
-                    <p class="small">Administra categorías, productos y precios.</p>
-                </div><button class="btn btn-primary" onclick="prepareNewProduct()">+ Agregar producto</button>
-            </div>
-            <div class="panel table-wrap" style="margin-top:24px">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Categoría</th>
-                            <th>Precio</th>
-                            <th>Estado</th><th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminProducts"><tr><td colspan="5">Cargando productos...</td></tr></tbody>
-                </table>
-            </div>
-        </main>
+      <aside class="sidebar">
+        <a class="logo" href="index.html">
+          <img
+            src="assets/img/logo.png"
+            alt="Patacón Pisa'o"
+            class="logo-img"
+          /> </a
+        ><a class="side-link" href="admin-orders.html">Pedidos</a
+        ><a class="side-link active" href="admin-menu.html">Menú</a
+        ><a class="side-link" href="index.html">Ver sitio</a
+        ><a
+          class="side-link"
+          href="#"
+          onclick="
+            logout();
+            return false;
+          "
+          >Cerrar sesión</a
+        >
+      </aside>
+      <main class="admin-main">
+        <div class="admin-top">
+          <div>
+            <span class="eyebrow">Gestión de menú</span>
+            <h1>Productos del restaurante</h1>
+            <p class="small">Administra categorías, productos y precios.</p>
+          </div>
+          <button class="btn btn-primary" onclick="prepareNewProduct()">
+            + Agregar producto
+          </button>
+        </div>
+        <div class="panel table-wrap" style="margin-top: 24px">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="adminProducts">
+              <tr>
+                <td colspan="5">Cargando productos...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
     <div id="productModal" class="modal">
-        <div class="modal-card">
-            <div class="modal-head">
-                <h2 id="productModalTitle">Agregar producto nuevo</h2><button class="close" data-close="productModal">×</button>
-            </div>
-            <form id="productForm" class="form-grid"><input type="hidden" id="productId">
-                <div class="field full"><label>Nombre del producto</label><input id="productName" required
-                        placeholder="Salchipapa Especial"></div>
-                <div class="field"><label>Categoría</label><select id="productCategory">
-                        <option>Hamburguesas</option>
-                        <option>Picadas</option>
-                        <option>Salchipapas</option>
-                        <option>Bebidas</option>
-                        <option>Toppings</option>
-                    </select></div>
-                <div class="field"><label>Precio (COP)</label><input id="productPrice" required type="number" min="0"
-                        placeholder="28000"></div>
-                <div class="field full"><label>Descripción</label><textarea id="productDescription" rows="4" placeholder="Descripción del producto"></textarea></div>
-                <div class="field full"><label>Ruta o URL de imagen</label><input id="productImage" type="text" placeholder="assets/img/mi-producto.jpg"></div><button
-                    type="button" class="btn btn-outline" data-close="productModal">Cancelar</button><button
-                    class="btn btn-primary" type="submit">Guardar producto</button>
-            </form>
+      <div class="modal-card">
+        <div class="modal-head">
+          <h2 id="productModalTitle">Agregar producto nuevo</h2>
+          <button class="close" data-close="productModal">×</button>
         </div>
+        <form id="productForm" class="form-grid">
+          <input type="hidden" id="productId" />
+          <div class="field full">
+            <label>Nombre del producto</label
+            ><input
+              id="productName"
+              required
+              placeholder="Salchipapa Especial"
+            />
+          </div>
+          <div class="field">
+            <label>Categoría</label
+            ><select id="productCategory">
+              <option>Hamburguesas</option>
+              <option>Picadas</option>
+              <option>Salchipapas</option>
+              <option>Bebidas</option>
+              <option>Toppings</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Precio (COP)</label
+            ><input
+              id="productPrice"
+              required
+              type="number"
+              min="0"
+              placeholder="28000"
+            />
+          </div>
+          <div class="field full">
+            <label>Descripción</label
+            ><textarea
+              id="productDescription"
+              rows="4"
+              placeholder="Descripción del producto"
+            ></textarea>
+          </div>
+          <div class="field full">
+            <label>Ruta o URL de imagen</label
+            ><input
+              id="productImage"
+              type="text"
+              placeholder="assets/img/mi-producto.jpg"
+            />
+          </div>
+          <button
+            type="button"
+            class="btn btn-outline"
+            data-close="productModal"
+          >
+            Cancelar</button
+          ><button class="btn btn-primary" type="submit">
+            Guardar producto
+          </button>
+        </form>
+      </div>
     </div>
     <script src="js/app.js"></script>
     <script src="js/admin.js"></script>
-</body>
-
+  </body>
 </html>

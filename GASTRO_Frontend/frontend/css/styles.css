@@ -22,6 +22,7 @@ html {
 
 body {
   margin: 0;
+  overflow-x: hidden;
   font-family:
     Inter,
     system-ui,
@@ -66,6 +67,7 @@ textarea {
   ); /* Aqui se le cambia el color del nav osea el heder*/
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
+  position: relative;
 }
 
 .nav {
@@ -81,6 +83,11 @@ textarea {
   font-weight: 900;
   letter-spacing: 0.03em;
   color: var(--brand);
+}
+.logo-img {
+  height: 180px;
+  width: auto;
+  display: block;
 }
 
 .topbar .logo {
@@ -109,7 +116,16 @@ textarea {
   align-items: center;
   gap: 8px;
 }
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 .admin-access {
+  position: absolute;
+  top: 50%;
+  right: 40px;
+  transform: translateY(-50%);
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -121,6 +137,19 @@ textarea {
 
 .admin-access:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+.cart-access {
+  position: relative;
+  display: block;
+}
+
+.cart-access img {
+  width: 22px;
+  height: 22px;
+  display: block;
+  position: relative;
+  top: 0px;
+  left: 0px;
 }
 
 .badge {
@@ -307,6 +336,9 @@ textarea {
   flex-direction: column;
   gap: 10px;
   flex: 1;
+}
+.product-body .btn {
+  margin-top: auto;
 }
 
 .product-title-row {
@@ -840,4 +872,17 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
+}
+/* Botón que ocupa todo el ancho de la tarjeta */
+.btn-block {
+  width: 100%;
+}
+
+/* Enlace alineado a la derecha, como "¿Olvidaste tu contraseña?" */
+.link-right {
+  text-align: right;
+}
+/* Lo que tiene el atributo "hidden" no se muestra */
+[hidden] {
+  display: none !important;
 }
