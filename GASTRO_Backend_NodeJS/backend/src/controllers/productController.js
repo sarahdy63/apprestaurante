@@ -7,18 +7,21 @@ async function list(req, res, next) {
     // Lee la categoría opcional enviada como query string.
     const category = req.query.category;
     // Prepara una consulta base que también trae el nombre de la categoría.
-    let sql = "SELECT p.id, p.name, c.name AS category, p.price, p.image_url AS img, p.description AS `desc`, p.active FROM products p JOIN categories c ON c.id = p.category_id WHERE p.active = 1";
-    // Prepara el arreglo de parámetros para evitar concatenar valores del usuario.
+    let sql =
+      "SELECT p.id, p.name, c.name AS category, p.price, p.stock, p.image_url AS img, p.description AS `desc`, p.active FROM products p JOIN categories c ON c.id = p.category_id WHERE p.active = 1"; // Prepara el arreglo de parámetros para evitar concatenar valores del usuario.
     const params = [];
     // Agrega el filtro de categoría cuando fue solicitado.
-    if (category && category !== "Todos") { sql += " AND c.name = ?"; params.push(category); }
+    if (category && category !== "Todos") {
+      sql += " AND c.name = ?";
+      params.push(category);
+    }
     // Ordena de forma estable por categoría y nombre.
     sql += " ORDER BY c.name, p.name";
     // Ejecuta la consulta parametrizada.
     const [rows] = await pool.query(sql, params);
     // Devuelve el arreglo de productos en formato JSON.
     return res.json(rows);
-  // Captura errores de consulta.
+    // Captura errores de consulta.
   } catch (error) {
     // Delega el manejo del error.
     return next(error);
@@ -29,10 +32,12 @@ async function listAdmin(req, res, next) {
   // Inicia el bloque de manejo de errores.
   try {
     // Ejecuta la consulta administrativa.
-    const [rows] = await pool.query("SELECT p.id, p.name, c.name AS category, p.price, p.image_url AS img, p.description AS `desc`, p.active FROM products p JOIN categories c ON c.id = p.category_id ORDER BY p.id DESC");
+    const [rows] = await pool.query(
+      "SELECT p.id, p.name, c.name AS category, p.price, p.stock, p.image_url AS img, p.description AS `desc`, p.active FROM products p JOIN categories c ON c.id = p.category_id ORDER BY p.id DESC",
+    );
     // Devuelve los productos encontrados.
     return res.json(rows);
-  // Captura errores inesperados.
+    // Captura errores inesperados.
   } catch (error) {
     // Delega el error al middleware general.
     return next(error);
@@ -41,11 +46,17 @@ async function listAdmin(req, res, next) {
 // Obtiene el identificador de una categoría y la crea si no existe.
 async function resolveCategory(connection, category) {
   // Busca la categoría por su nombre.
-  const [rows] = await connection.query("SELECT id FROM categories WHERE name = ? LIMIT 1", [category]);
+  const [rows] = await connection.query(
+    "SELECT id FROM categories WHERE name = ? LIMIT 1",
+    [category],
+  );
   // Devuelve el identificador cuando ya existe.
   if (rows.length) return rows[0].id;
   // Inserta una nueva categoría cuando el nombre todavía no existe.
-  const [result] = await connection.query("INSERT INTO categories (name, active) VALUES (?, 1)", [category]);
+  const [result] = await connection.query(
+    "INSERT INTO categories (name, active) VALUES (?, 1)",
+    [category],
+  );
   // Devuelve el identificador generado por MySQL.
   return result.insertId;
 }
@@ -54,9 +65,12 @@ async function create(req, res, next) {
   // Inicia el manejo controlado de errores.
   try {
     // Extrae los campos recibidos desde el frontend.
-    const { name, category, price, img, desc } = req.body;
+    const { name, category, price, img, desc, stock = 0 } = req.body;
     // Valida los datos mínimos requeridos.
-    if (!name || !category || price === undefined) return res.status(400).json({ message: "Nombre, categoría y precio son obligatorios." });
+    if (!name || !category || price === undefined)
+      return res
+        .status(400)
+        .json({ message: "Nombre, categoría y precio son obligatorios." });
     // Obtiene una conexión dedicada para crear categoría y producto de forma consistente.
     const connection = await pool.getConnection();
     // Inicia un bloque para garantizar la liberación de la conexión.
@@ -64,15 +78,28 @@ async function create(req, res, next) {
       // Obtiene o crea la categoría solicitada.
       const categoryId = await resolveCategory(connection, category);
       // Inserta el nuevo producto con valores parametrizados.
-      const [result] = await connection.query("INSERT INTO products (category_id, name, description, price, image_url, active) VALUES (?, ?, ?, ?, ?, 1)", [categoryId, name.trim(), desc || "", Number(price), img || "assets/img/product-placeholder.jpg"]);
+      const [result] = await connection.query(
+        "INSERT INTO products (category_id, name, description, price, stock, image_url, active) VALUES (?, ?, ?, ?, ?, ?, 1)",
+        [
+          categoryId,
+          name.trim(),
+          desc || "",
+          Number(price),
+          Number(stock) || 0,
+          img || "assets/img/product-placeholder.jpg",
+        ],
+      );
       // Responde 201 indicando que el recurso fue creado.
-      return res.status(201).json({ id: result.insertId, message: "Producto creado correctamente." });
-    // Este bloque siempre se ejecuta aunque ocurra un error.
+      return res.status(201).json({
+        id: result.insertId,
+        message: "Producto creado correctamente.",
+      });
+      // Este bloque siempre se ejecuta aunque ocurra un error.
     } finally {
       // Devuelve la conexión al pool.
       connection.release();
     }
-  // Captura errores de validación o base de datos.
+    // Captura errores de validación o base de datos.
   } catch (error) {
     // Delega el error al manejador global.
     return next(error);
@@ -87,7 +114,10 @@ async function update(req, res, next) {
     // Extrae los campos editables enviados en el body.
     const { name, category, price, img, desc, active = 1 } = req.body;
     // Valida los campos obligatorios.
-    if (!id || !name || !category || price === undefined) return res.status(400).json({ message: "Datos incompletos para actualizar el producto." });
+    if (!id || !name || !category || price === undefined)
+      return res
+        .status(400)
+        .json({ message: "Datos incompletos para actualizar el producto." });
     // Solicita una conexión dedicada.
     const connection = await pool.getConnection();
     // Garantiza que la conexión sea liberada al terminar.
@@ -95,17 +125,29 @@ async function update(req, res, next) {
       // Obtiene el id de la categoría seleccionada.
       const categoryId = await resolveCategory(connection, category);
       // Ejecuta la actualización del producto.
-      const [result] = await connection.query("UPDATE products SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, active = ? WHERE id = ?", [categoryId, name.trim(), desc || "", Number(price), img || "", active ? 1 : 0, id]);
+      const [result] = await connection.query(
+        "UPDATE products SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, active = ? WHERE id = ?",
+        [
+          categoryId,
+          name.trim(),
+          desc || "",
+          Number(price),
+          img || "",
+          active ? 1 : 0,
+          id,
+        ],
+      );
       // Devuelve 404 si el id no existe.
-      if (!result.affectedRows) return res.status(404).json({ message: "Producto no encontrado." });
+      if (!result.affectedRows)
+        return res.status(404).json({ message: "Producto no encontrado." });
       // Confirma la actualización.
       return res.json({ message: "Producto actualizado correctamente." });
-    // Se ejecuta al salir del bloque interno.
+      // Se ejecuta al salir del bloque interno.
     } finally {
       // Devuelve la conexión al pool.
       connection.release();
     }
-  // Captura errores inesperados.
+    // Captura errores inesperados.
   } catch (error) {
     // Delega el error.
     return next(error);
@@ -118,16 +160,68 @@ async function remove(req, res, next) {
     // Convierte el id de la URL a número.
     const id = Number(req.params.id);
     // Marca el producto como inactivo en lugar de borrarlo físicamente.
-    const [result] = await pool.query("UPDATE products SET active = 0 WHERE id = ?", [id]);
+    const [result] = await pool.query(
+      "UPDATE products SET active = 0 WHERE id = ?",
+      [id],
+    );
     // Devuelve 404 cuando el producto no existe.
-    if (!result.affectedRows) return res.status(404).json({ message: "Producto no encontrado." });
+    if (!result.affectedRows)
+      return res.status(404).json({ message: "Producto no encontrado." });
     // Confirma la eliminación lógica.
     return res.json({ message: "Producto eliminado del menú." });
-  // Captura errores.
+    // Captura errores.
   } catch (error) {
     // Delega el error.
     return next(error);
   }
 }
+// Suma stock cuando llega mercancía, o lo fija cuando el admin cuenta lo que hay.
+async function updateStock(req, res, next) {
+  try {
+    // Lee el id del producto desde la URL.
+    const id = Number(req.params.id);
+    // Lee del body si se quiere sumar (add) o fijar (set) la cantidad.
+    const { add, set } = req.body;
+    // Aquí se guardará la consulta y la cantidad según el caso.
+    let sql, qty;
+    if (add !== undefined) {
+      // "Llegó más": suma a lo que ya hay.
+      qty = Number(add);
+      if (!Number.isInteger(qty) || qty <= 0)
+        return res.status(400).json({
+          message:
+            "La cantidad a sumar debe ser un número entero mayor que cero.",
+        });
+      sql = "UPDATE products SET stock = stock + ? WHERE id = ?";
+    } else if (set !== undefined) {
+      // Corrección: deja el stock exactamente en la cantidad indicada.
+      qty = Number(set);
+      if (!Number.isInteger(qty) || qty < 0)
+        return res.status(400).json({
+          message: "El stock debe ser un número entero, cero o mayor.",
+        });
+      sql = "UPDATE products SET stock = ? WHERE id = ?";
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Envía 'add' (sumar) o 'set' (fijar)." });
+    }
+    // Ejecuta la actualización.
+    const [result] = await pool.query(sql, [qty, id]);
+    // Si no se modificó nada, el producto no existe.
+    if (!result.affectedRows)
+      return res.status(404).json({ message: "Producto no encontrado." });
+    // Consulta el stock actual para devolverlo.
+    const [rows] = await pool.query("SELECT stock FROM products WHERE id = ?", [
+      id,
+    ]);
+    return res.json({
+      message: "Stock actualizado correctamente.",
+      stock: rows[0].stock,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
 // Exporta las operaciones para asociarlas con rutas HTTP.
-module.exports = { list, listAdmin, create, update, remove };
+module.exports = { list, listAdmin, create, update, remove, updateStock };

@@ -27,12 +27,16 @@ router.get("/products", products.list);
 router.post("/orders", orders.create);
 // Expone el seguimiento público de un pedido mediante su código.
 router.get("/orders/code/:code", orders.getByCode);
+// Permite al cliente cancelar su pedido mientras esté RECIBIDO.
+router.patch("/orders/code/:code/cancel", orders.cancelByCode);
 // Expone la información pública del restaurante.
 router.get("/restaurant", restaurant.get);
 // Protege la lista administrativa de productos con JWT.
 router.get("/admin/products", requireAuth, products.listAdmin);
 // Protege la creación de productos con JWT.
 router.post("/admin/products", requireAuth, products.create);
+// Suma o fija el stock de un producto (solo administrador).
+router.patch("/admin/products/:id/stock", requireAuth, products.updateStock);
 // Protege la edición de productos con JWT.
 router.put("/admin/products/:id", requireAuth, products.update);
 // Protege la eliminación lógica de productos con JWT.
