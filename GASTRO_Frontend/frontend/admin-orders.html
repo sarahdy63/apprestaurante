@@ -49,6 +49,25 @@
             <span>Ventas del día</span><strong id="statSales">$0</strong>
           </div>
         </section>
+        <div class="panel filters">
+          <input
+            id="orderSearch"
+            type="search"
+            placeholder="Buscar por código, nombre o teléfono..."
+          />
+          <select id="orderStatusFilter">
+            <option value="">Todos los estados</option>
+            <option value="RECIBIDO">Recibido</option>
+            <option value="PREPARANDO">Preparando</option>
+            <option value="EN_CAMINO">En camino</option>
+            <option value="ENTREGADO">Entregado</option>
+            <option value="CANCELADO">Cancelado</option>
+          </select>
+          <input id="orderDateFilter" type="date" />
+          <button id="orderClearFilters" class="btn btn-outline" type="button">
+            Limpiar
+          </button>
+        </div>
         <div class="panel table-wrap">
           <table class="data-table">
             <thead>
@@ -68,6 +87,7 @@
             </tbody>
           </table>
         </div>
+        <div id="ordersPagination" class="pagination"></div>
       </main>
     </div>
     <script src="js/app.js"></script>

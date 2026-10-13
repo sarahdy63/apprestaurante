@@ -164,20 +164,57 @@ async function getByCode(req, res, next) {
     return next(error);
   }
 }
+// Lista pedidos para el panel administrativo, con paginación, búsqueda y filtros.
 async function list(req, res, next) {
   try {
+    // Página pedida (mínimo 1) y cantidad por página (entre 1 y 100, por defecto 10).
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+    // Cuántos pedidos saltar para llegar a esa página.
     const offset = (page - 1) * limit;
 
+    // Texto que escribió el admin en el buscador (puede venir vacío).
+    const q = (req.query.q || "").trim();
+    // Lista de condiciones y sus valores, según los filtros que lleguen.
+    const conditions = [];
+    const params = [];
+    // Búsqueda por código, nombre del cliente o teléfono.
+    if (q) {
+      conditions.push(
+        "(o.code LIKE ? OR CONCAT(o.customer_first_name, ' ', o.customer_last_name) LIKE ? OR o.phone LIKE ?)",
+      );
+      const like = `%${q}%`;
+      params.push(like, like, like);
+    }
+    // Filtro por estado del pedido.
+    const status = (req.query.status || "").trim();
+    if (status) {
+      conditions.push("o.status = ?");
+      params.push(status);
+    }
+    // Filtro por día (formato AAAA-MM-DD).
+    const date = (req.query.date || "").trim();
+    if (date) {
+      conditions.push("DATE(o.created_at) = ?");
+      params.push(date);
+    }
+    // Une todas las condiciones; si no hay ninguna, no filtra nada.
+    const where = conditions.length ? "WHERE " + conditions.join(" AND ") : "";
+
+    // Trae los pedidos de esta página que cumplen los filtros.
     const [rows] = await pool.query(
-      "SELECT o.id, o.code, CONCAT(o.customer_first_name, ' ', o.customer_last_name) AS customer, o.phone, o.neighborhood, o.address, o.total, o.status, o.created_at, GROUP_CONCAT(CONCAT(oi.quantity, ' x ', oi.product_name) SEPARATOR ', ') AS products FROM orders o JOIN order_items oi ON oi.order_id = o.id GROUP BY o.id ORDER BY o.created_at DESC LIMIT ? OFFSET ?",
-      [limit, offset],
+      "SELECT o.id, o.code, CONCAT(o.customer_first_name, ' ', o.customer_last_name) AS customer, o.phone, o.neighborhood, o.address, o.total, o.status, o.created_at, GROUP_CONCAT(CONCAT(oi.quantity, ' x ', oi.product_name) SEPARATOR ', ') AS products FROM orders o JOIN order_items oi ON oi.order_id = o.id " +
+        where +
+        " GROUP BY o.id ORDER BY o.created_at DESC LIMIT ? OFFSET ?",
+      [...params, limit, offset],
     );
+    // Cuenta el total con las MISMAS condiciones, para que las páginas salgan bien.
     const [countResult] = await pool.query(
-      "SELECT COUNT(*) AS total FROM orders",
+      "SELECT COUNT(*) AS total FROM orders o " + where,
+      params,
     );
 
+    // Devuelve la página, los totales y los pedidos.
     return res.json({
       total: countResult[0].total,
       page,
@@ -189,7 +226,6 @@ async function list(req, res, next) {
     return next(error);
   }
 }
-// Cambia el estado operativo de un pedido.
 
 // Cambia el estado operativo de un pedido y devuelve el stock si se cancela.
 async function updateStatus(req, res, next) {
@@ -299,7 +335,6 @@ async function cancelByCode(req, res, next) {
       return res.status(404).json({ message: "Pedido no encontrado." });
     }
     const order = rows[0];
-    // Solo se puede cancelar mientras el administrador no lo haya pasado a PREPARANDO.
     // Si ya estaba cancelado, se avisa con un mensaje claro y no se toca nada.
     if (order.status === "CANCELADO") {
       await connection.rollback();
@@ -308,12 +343,10 @@ async function cancelByCode(req, res, next) {
     // Solo se puede cancelar mientras el administrador no lo haya pasado a PREPARANDO.
     if (order.status !== "RECIBIDO") {
       await connection.rollback();
-      return res
-        .status(409)
-        .json({
-          message:
-            "Este pedido ya no se puede cancelar porque ya está en preparación o fue entregado.",
-        });
+      return res.status(409).json({
+        message:
+          "Este pedido ya no se puede cancelar porque ya está en preparación o fue entregado.",
+      });
     }
     // Marca el pedido como cancelado.
     await connection.query(

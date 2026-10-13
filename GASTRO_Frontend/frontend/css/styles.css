@@ -886,3 +886,54 @@ textarea {
 [hidden] {
   display: none !important;
 }
+/* Barra de filtros del panel de pedidos */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+.filters input,
+.filters select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+}
+.filters input[type="search"] {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* Paginación */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 4px;
+}
+.page-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.page-btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px 11px;
+  cursor: pointer;
+}
+.page-btn.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
