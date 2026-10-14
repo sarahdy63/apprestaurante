@@ -7,6 +7,20 @@ const money = (value) =>
     currency: "COP",
     maximumFractionDigits: 0,
   }).format(Number(value || 0));
+// Muestra un aviso flotante y amable en vez de un alert feo.
+function showToast(message) {
+  let toast = document.querySelector("#toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    toast.className = "toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 3500);
+}
 
 async function api(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -35,15 +49,48 @@ function addToCart(id) {
   const product = PRODUCTS.find((x) => Number(x.id) === Number(id));
   if (!product) return;
   const row = cart.find((x) => Number(x.id) === Number(id));
-  row ? row.qty++ : cart.push({ ...product, qty: 1 });
+  const inCart = row ? row.qty : 0;
+  const available = Number(product.stock || 0);
+  // Si ya no alcanza, avisa de una vez y no agrega nada.
+  if (inCart + 1 > available) {
+    showToast(
+      available <= 0
+        ? `Ups, lo sentimos  "${product.name}" está agotado por ahora.`
+        : `Ups, lo sentimos no contamos con más unidades de "${product.name}". Disponibles: ${available}.`,
+    );
+    return;
+  }
+  if (row) {
+    row.qty++;
+    row.stock = available;
+  } else {
+    cart.push({ ...product, qty: 1 });
+  }
   saveCart();
 }
 
 function changeQty(id, delta) {
   const row = cart.find((x) => Number(x.id) === Number(id));
   if (!row) return;
+  if (delta > 0) {
+    // El menú solo tiene la categoría que se está viendo, por eso se busca primero ahí y si no, se usa lo guardado.
+    const fresh = PRODUCTS.find((x) => Number(x.id) === Number(id));
+    const known = fresh ? fresh.stock : row.stock;
+    if (known !== undefined && row.qty + delta > Number(known)) {
+      showToast(
+        `Ups, lo sentimos no contamos con más unidades de "${row.name}". Disponibles: ${known}.`,
+      );
+      return;
+    }
+    if (fresh) row.stock = fresh.stock;
+  }
   row.qty += delta;
   if (row.qty <= 0) cart = cart.filter((x) => Number(x.id) !== Number(id));
+  saveCart();
+}
+// Quita un producto del carrito de una vez, sin importar cuántas unidades tenga.
+function removeFromCart(id) {
+  cart = cart.filter((x) => Number(x.id) !== Number(id));
   saveCart();
 }
 
@@ -64,10 +111,17 @@ async function loadProducts(category = "Todos") {
 function renderProducts() {
   const root = document.querySelector("#products");
   if (!root) return;
-  root.innerHTML = PRODUCTS.map(
-    (p) =>
-      `<article class="product-card"><img src="${p.img || ""}" alt="${p.name}"><div class="product-body"><div class="product-title-row"><strong>${p.name}</strong><span class="price">${money(p.price)}</span></div><p>${p.desc || ""}</p><button class="btn btn-primary" onclick="addToCart(${p.id})">+ Agregar</button></div></article>`,
-  ).join("");
+  root.innerHTML = PRODUCTS.map((p) => {
+    const stock = Number(p.stock || 0);
+    const soldOut = stock <= 0;
+    // Etiqueta sobre la foto: agotado, o pocas unidades.
+    const tag = soldOut
+      ? '<span class="stock-tag out">Agotado</span>'
+      : stock <= 5
+        ? `<span class="stock-tag low">¡Solo quedan ${stock}!</span>`
+        : "";
+    return `<article class="product-card ${soldOut ? "sold-out" : ""}"><div class="product-img-wrap"><img src="${p.img || ""}" alt="${p.name}">${tag}</div><div class="product-body"><div class="product-title-row"><strong>${p.name}</strong><span class="price">${money(p.price)}</span></div><p>${p.desc || ""}</p><button class="btn btn-primary" ${soldOut ? "disabled" : ""} onclick="addToCart(${p.id})">${soldOut ? "Agotado" : "+ Agregar"}</button></div></article>`;
+  }).join("");
 }
 
 function renderCart() {
@@ -78,7 +132,7 @@ function renderCart() {
     : cart
         .map(
           (i) =>
-            `<div class="cart-item"><img src="${i.img || ""}" alt="${i.name}"><div><strong>${i.name}</strong><div class="small">${money(i.price)}</div><div class="qty"><button onclick="changeQty(${i.id},-1)">−</button><span>${i.qty}</span><button onclick="changeQty(${i.id},1)">+</button></div></div><strong>${money(i.price * i.qty)}</strong></div>`,
+            `<div class="cart-item"><img src="${i.img || ""}" alt="${i.name}"><div><strong>${i.name}</strong><div class="small">${money(i.price)}</div><div class="qty"><button onclick="changeQty(${i.id},-1)">−</button><span>${i.qty}</span><button onclick="changeQty(${i.id},1)">+</button></div></div><div class="cart-item-end"><button class="remove-btn" onclick="removeFromCart(${i.id})" title="Quitar del pedido" aria-label="Quitar ${i.name} del pedido">×</button><strong>${money(i.price * i.qty)}</strong></div></div>`,
         )
         .join("");
   const subtotal = cart.reduce((a, i) => a + Number(i.price) * i.qty, 0);
@@ -144,7 +198,7 @@ async function confirmOrder(e) {
     saveCart();
     location.href = `tracking.html?code=${encodeURIComponent(order.code)}`;
   } catch (error) {
-    alert(error.message);
+    showToast(error.message);
   }
 }
 
@@ -156,6 +210,34 @@ function setTrackingStatus(status) {
     if (index < current) step.classList.add("done");
     if (index === current) step.classList.add("active");
   });
+}
+let trackingCode = "";
+
+// Muestra u oculta el botón de cancelar según el estado del pedido.
+function updateCancelUI(status) {
+  const box = document.querySelector("#cancelBox");
+  const notice = document.querySelector("#cancelledNotice");
+  const progress = document.querySelector(".progress");
+  if (!box) return;
+  box.hidden = status !== "RECIBIDO";
+  notice.hidden = status !== "CANCELADO";
+  if (progress) progress.hidden = status === "CANCELADO";
+}
+
+// Pide confirmación y cancela el pedido con el código.
+async function cancelOrder() {
+  if (!trackingCode) return;
+  if (!confirm("¿Seguro que quieres cancelar tu pedido?")) return;
+  try {
+    const result = await api(
+      `/orders/code/${encodeURIComponent(trackingCode)}/cancel`,
+      { method: "PATCH" },
+    );
+    showToast(result.message);
+  } catch (error) {
+    showToast(error.message);
+  }
+  await loadTracking();
 }
 
 async function loadTracking() {
@@ -183,6 +265,8 @@ async function loadTracking() {
     if (delivery)
       delivery.innerHTML = `<p><strong>Cliente:</strong> ${order.customer_first_name} ${order.customer_last_name}</p><p><strong>Teléfono:</strong> ${order.phone}</p><p><strong>Barrio:</strong> ${order.neighborhood}</p><p><strong>Dirección:</strong> ${order.address}</p><p><strong>Método de pago:</strong> ${order.payment_method}</p>`;
     setTrackingStatus(order.status);
+    trackingCode = order.code;
+    updateCancelUI(order.status);
   } catch (error) {
     alert(error.message);
   }
@@ -193,6 +277,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCart();
   updateBadge();
   loadTracking();
+  document
+    .querySelector("#cancelOrderBtn")
+    ?.addEventListener("click", cancelOrder);
   document.querySelectorAll(".category-btn").forEach((btn) =>
     btn.addEventListener("click", () => {
       document

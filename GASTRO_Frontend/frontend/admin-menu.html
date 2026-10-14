@@ -40,45 +40,70 @@
             + Agregar producto
           </button>
         </div>
-        <div class="panel table-wrap" style="margin-top: 24px">
+        <div class="panel filters" style="margin-top: 24px">
+          <input
+            id="inventorySearch"
+            type="search"
+            placeholder="Buscar producto..."
+          />
+          <select id="inventoryCategory">
+            <option value="">Todas las categorías</option>
+          </select>
+          <select id="inventoryStatus">
+            <option value="">Todos los estados</option>
+            <option value="agotado">Agotado</option>
+            <option value="bajo">Bajo</option>
+            <option value="normal">Normal</option>
+            <option value="optimo">Óptimo</option>
+          </select>
+          <button id="inventoryClear" class="btn btn-outline" type="button">
+            Limpiar
+          </button>
+        </div>
+        <div class="panel table-wrap">
           <table class="data-table">
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Producto</th>
                 <th>Categoría</th>
                 <th>Precio</th>
-                <th>Estado</th>
+                <th>Stock</th>
+                <th>Estado del stock</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="adminProducts">
               <tr>
-                <td colspan="5">Cargando productos...</td>
+                <td colspan="7">Cargando productos...</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <div id="inventoryPagination" class="pagination"></div>
       </main>
     </div>
     <div id="productModal" class="modal">
       <div class="modal-card">
         <div class="modal-head">
           <h2 id="productModalTitle">Agregar producto nuevo</h2>
-          <button class="close" data-close="productModal">×</button>
+          <button class="close" type="button" data-close="productModal">
+            ×
+          </button>
         </div>
         <form id="productForm" class="form-grid">
           <input type="hidden" id="productId" />
           <div class="field full">
-            <label>Nombre del producto</label
-            ><input
+            <label>Nombre del producto</label>
+            <input
               id="productName"
               required
               placeholder="Salchipapa Especial"
             />
           </div>
           <div class="field">
-            <label>Categoría</label
-            ><select id="productCategory">
+            <label>Categoría</label>
+            <select id="productCategory">
               <option>Hamburguesas</option>
               <option>Picadas</option>
               <option>Salchipapas</option>
@@ -87,8 +112,8 @@
             </select>
           </div>
           <div class="field">
-            <label>Precio (COP)</label
-            ><input
+            <label>Precio (COP)</label>
+            <input
               id="productPrice"
               required
               type="number"
@@ -97,19 +122,30 @@
             />
           </div>
           <div class="field full">
-            <label>Descripción</label
-            ><textarea
+            <label>Stock disponible</label>
+            <input id="productStock" type="number" min="0" step="1" value="0" />
+            <span class="small" id="productStockHint"></span>
+          </div>
+          <div class="field full">
+            <label>Descripción</label>
+            <textarea
               id="productDescription"
               rows="4"
               placeholder="Descripción del producto"
             ></textarea>
           </div>
           <div class="field full">
-            <label>Ruta o URL de imagen</label
-            ><input
+            <label>Imagen</label>
+            <img
+              id="imagePreview"
+              class="image-preview"
+              alt="Vista previa"
+              hidden
+            />
+            <input
               id="productImage"
               type="text"
-              placeholder="assets/img/mi-producto.jpg"
+              placeholder="assets/img/mi-producto.jpg o un enlace de internet"
             />
           </div>
           <button
@@ -117,8 +153,9 @@
             class="btn btn-outline"
             data-close="productModal"
           >
-            Cancelar</button
-          ><button class="btn btn-primary" type="submit">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" type="submit">
             Guardar producto
           </button>
         </form>

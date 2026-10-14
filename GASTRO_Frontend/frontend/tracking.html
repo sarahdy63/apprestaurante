@@ -61,6 +61,23 @@
             <span>Total</span><span data-order-total>$45.000</span>
           </div>
         </div>
+        <div id="cancelBox" class="cancel-box" hidden>
+          <p class="small">
+            Puedes cancelar tu pedido mientras todavía no haya pasado a
+            preparación.
+          </p>
+          <button
+            id="cancelOrderBtn"
+            class="btn btn-outline btn-danger-outline"
+            type="button"
+          >
+            Cancelar pedido
+          </button>
+        </div>
+        <div id="cancelledNotice" class="cancelled-notice" hidden>
+          Tu pedido fue cancelado. Si quieres, puedes hacer uno nuevo desde el
+          menú.
+        </div>
         <div class="panel order-summary">
           <h2>Datos de entrega</h2>
           <div id="orderDeliveryInfo"></div>
