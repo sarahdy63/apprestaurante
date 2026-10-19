@@ -1,0 +1,265 @@
+/* ===== Estilos de terminos.html y privacidad.html ===== */
+
+/* Colores del logo (rojo, amarillo, verde). Si quieres cambiar uno, cámbialo aquí. */
+:root {
+  --rojo: #c8261b;
+  --rojo-oscuro: #9e1b12;
+  --amarillo: #f2b705;
+  --verde: #3e7d2a;
+  --verde-claro: #eaf3e5;
+  --crema: #fff8e7;
+  --texto: #2b2b2b;
+  --gris: #6b6b6b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--texto);
+  background: var(--crema);
+  line-height: 1.7;
+}
+
+/* ===== Encabezado ===== */
+.encabezado {
+  background: var(--rojo);
+  border-bottom: 6px solid var(--amarillo);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.encabezado-contenido {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.marca {
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.encabezado a {
+  background: var(--amarillo);
+  color: var(--texto);
+  text-decoration: none;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 999px;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.encabezado a:hover {
+  background: #ffd33d;
+  transform: translateY(-2px);
+}
+
+/* ===== Tarjeta con el contenido ===== */
+main {
+  max-width: 900px;
+  margin: 28px auto 40px;
+  padding: 36px 40px 44px;
+  background: #fff;
+  border-radius: 12px;
+  border-top: 6px solid var(--verde);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  color: var(--verde);
+  font-size: 2rem;
+  line-height: 1.25;
+  margin: 0 0 6px;
+}
+
+.version {
+  color: var(--gris);
+  font-size: 0.95rem;
+  margin: 0 0 26px;
+  padding-bottom: 16px;
+  border-bottom: 2px dashed var(--amarillo);
+}
+
+h2 {
+  color: var(--rojo-oscuro);
+  font-size: 1.2rem;
+  margin: 32px 0 10px;
+  padding: 6px 0 6px 14px;
+  border-left: 6px solid var(--amarillo);
+  background: linear-gradient(90deg, #fff3cc, #fff);
+}
+
+p {
+  margin: 10px 0;
+}
+
+ul {
+  margin: 10px 0;
+  padding-left: 24px;
+}
+
+li {
+  margin: 6px 0;
+}
+
+li::marker {
+  color: var(--verde);
+}
+
+strong {
+  color: #000;
+}
+
+a {
+  color: var(--rojo);
+  font-weight: 600;
+}
+
+a:hover {
+  color: var(--rojo-oscuro);
+}
+
+/* ===== Caja con los datos del negocio ===== */
+.datos {
+  list-style: none;
+  padding: 16px 20px;
+  background: var(--verde-claro);
+  border: 1px solid #cfe3c6;
+  border-left: 6px solid var(--verde);
+  border-radius: 8px;
+}
+
+.datos li {
+  margin: 4px 0;
+}
+
+/* Campos que el dueño debe completar */
+.pendiente {
+  background: #fff1b8;
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+/* ===== Tabla (política de privacidad) ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+th,
+td {
+  text-align: left;
+  padding: 11px 14px;
+  vertical-align: top;
+}
+
+th {
+  background: var(--verde);
+  color: #fff;
+}
+
+tbody tr:nth-child(even) {
+  background: #f7f7f2;
+}
+
+td {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+/* ===== Botones de abajo ===== */
+.acciones {
+  margin-top: 44px;
+  padding-top: 24px;
+  border-top: 3px solid var(--amarillo);
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 2px solid var(--rojo);
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-rojo {
+  background: var(--rojo);
+  color: #fff;
+}
+
+.btn-rojo:hover {
+  background: var(--rojo-oscuro);
+  color: #fff;
+}
+
+.btn-borde {
+  background: #fff;
+  color: var(--rojo);
+}
+
+.btn-borde:hover {
+  background: var(--rojo);
+  color: #fff;
+}
+
+/* ===== Pie de página ===== */
+.pie {
+  text-align: center;
+  color: var(--gris);
+  font-size: 0.9rem;
+  padding: 0 20px 30px;
+}
+
+/* ===== Celulares ===== */
+@media (max-width: 600px) {
+  main {
+    margin: 16px 12px 28px;
+    padding: 24px 18px 30px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .marca {
+    font-size: 1.15rem;
+  }
+
+  .acciones .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  th,
+  td {
+    padding: 8px;
+    font-size: 0.92rem;
+  }
+}

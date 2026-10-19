@@ -2,6 +2,7 @@
 const pool = require("../config/db");
 // Define el costo fijo de domicilio usado por esta versión básica.
 const SHIPPING_FEE = 6000;
+const MIN_ORDER = 30000;
 // Crea un código público legible para identificar el pedido.
 function createCode() {
   // Combina la hora actual con un número aleatorio y conserva cinco dígitos.
@@ -55,6 +56,13 @@ async function create(req, res, next) {
         productMap.get(Number(item.productId)).price * Number(item.quantity),
       0,
     );
+
+    // Rechaza pedidos por debajo del mínimo para domicilio.
+    if (subtotal < MIN_ORDER)
+      return res.status(400).json({
+        message: `El pedido mínimo para domicilio es de $${MIN_ORDER.toLocaleString("es-CO")}. Te faltan $${(MIN_ORDER - subtotal).toLocaleString("es-CO")}.`,
+      });
+
     // Define el costo de domicilio para pedidos con valor positivo.
     const shipping = subtotal > 0 ? SHIPPING_FEE : 0;
     // Calcula el total final que quedará persistido.

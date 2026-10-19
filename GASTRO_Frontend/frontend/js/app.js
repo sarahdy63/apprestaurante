@@ -1,6 +1,11 @@
 const API_BASE = "http://localhost:3000/api";
 let PRODUCTS = [];
 let cart = JSON.parse(localStorage.getItem("gastroCart") || "[]");
+// Valor mínimo del pedido (solo productos, sin domicilio) para poder pedir.
+const MIN_ORDER = 30000;
+
+// Subtotal de los productos del carrito.
+const getSubtotal = () => cart.reduce((a, i) => a + Number(i.price) * i.qty, 0);
 const money = (value) =>
   new Intl.NumberFormat("es-CO", {
     style: "currency",
@@ -137,6 +142,15 @@ function renderCart() {
         .join("");
   const subtotal = cart.reduce((a, i) => a + Number(i.price) * i.qty, 0);
   const shipping = subtotal ? 6000 : 0;
+
+  // Aviso de pedido mínimo
+  const hint = document.querySelector("#minOrderHint");
+  if (hint) {
+    const falta = MIN_ORDER - subtotal;
+    hint.hidden = !subtotal || falta <= 0;
+    hint.textContent = `Agrega ${money(falta)} más para alcanzar el pedido mínimo de ${money(MIN_ORDER)}.`;
+  }
+
   document
     .querySelectorAll("[data-subtotal]")
     .forEach((x) => (x.textContent = money(subtotal)));
@@ -146,6 +160,37 @@ function renderCart() {
   document
     .querySelectorAll("[data-total]")
     .forEach((x) => (x.textContent = money(subtotal + shipping)));
+}
+// Dibuja el mismo footer en todas las páginas que tengan <footer id="siteFooter">.
+function renderFooter() {
+  const footer = document.querySelector("#siteFooter");
+  if (!footer) return;
+  footer.innerHTML = `
+    <div class="container footer-grid">
+      <div>
+        <a class="footer-brand" href="index.html" aria-label="Patacón Pisa'o, ir al inicio">
+          <span class="brand-top">Patacón</span>
+          <span class="brand-bottom">Pisa'o</span>
+        </a>
+        <p>Una experiencia de comida rápida moderna, ágil y cercana.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Navegación</h4>
+        <a href="index.html">Inicio</a>
+        <a href="menu.html">Menú</a>
+        <a href="location.html">Ubicación</a>
+        <a href="about.html">Quiénes somos</a>
+      </div>
+      <div class="footer-links">
+        <h4>Legal</h4>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="terminos.html">Términos</a>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <p>+57 300 123 4567<br />info@gastro.com<br />Neiva, Huila</p>
+      </div>
+    </div>`;
 }
 
 function openModal(id) {
@@ -157,6 +202,27 @@ function closeModal(id) {
 function intentarConfirmar() {
   if (!cart.length)
     return alert("Tu carrito está vacío. Agrega productos antes de continuar.");
+
+  // Validación 1: pedido mínimo.
+  const subtotal = getSubtotal();
+  if (subtotal < MIN_ORDER) {
+    showToast(
+      `El pedido mínimo para domicilio es de ${money(MIN_ORDER)}. Te faltan ${money(MIN_ORDER - subtotal)}.`,
+    );
+    return;
+  }
+
+  // Validación 2: términos y condiciones.
+  const terminos = document.querySelector("#terminosCheck");
+  if (terminos && !terminos.checked) {
+    showToast(
+      "Para continuar con tu pedido, debes aceptar los términos y condiciones.",
+    );
+    terminos.closest(".terms-check")?.classList.add("error");
+    terminos.focus();
+    return;
+  }
+
   openModal("checkoutModal");
 }
 function soloLetras(input) {
@@ -211,17 +277,40 @@ function setTrackingStatus(status) {
     if (index === current) step.classList.add("active");
   });
 }
+// Texto y color de la etiqueta de estado, arriba a la derecha.
+const STATUS_CHIP = {
+  RECIBIDO: ["Pedido recibido", ""],
+  PREPARANDO: ["Preparando tu pedido", "cooking"],
+  EN_CAMINO: ["En camino", "route"],
+  ENTREGADO: ["Entregado", "done"],
+  CANCELADO: ["Cancelado", "cancelled"],
+};
+
+function updateStatusChip(status) {
+  const chip = document.querySelector("#statusChip");
+  const text = document.querySelector("#statusChipText");
+  if (!chip || !text) return;
+  const [label, css] = STATUS_CHIP[status] || STATUS_CHIP.RECIBIDO;
+  text.textContent = label;
+  chip.className = `status-chip ${css}`.trim();
+}
 let trackingCode = "";
 
-// Muestra u oculta el botón de cancelar según el estado del pedido.
+// Muestra el botón de cancelar solo mientras el pedido está RECIBIDO.
 function updateCancelUI(status) {
   const box = document.querySelector("#cancelBox");
-  const notice = document.querySelector("#cancelledNotice");
-  const progress = document.querySelector(".progress");
-  if (!box) return;
-  box.hidden = status !== "RECIBIDO";
-  notice.hidden = status !== "CANCELADO";
-  if (progress) progress.hidden = status === "CANCELADO";
+  if (box) box.hidden = status !== "RECIBIDO";
+}
+
+// Elige qué pantalla mostrar: el seguimiento normal, entregado o cancelado.
+function showTrackingView(status) {
+  const normal = document.querySelector("#trackingNormal");
+  const delivered = document.querySelector("#deliveredView");
+  const cancelled = document.querySelector("#cancelledView");
+  if (!normal || !delivered || !cancelled) return;
+  normal.hidden = status === "ENTREGADO" || status === "CANCELADO";
+  delivered.hidden = status !== "ENTREGADO";
+  cancelled.hidden = status !== "CANCELADO";
 }
 
 // Pide confirmación y cancela el pedido con el código.
@@ -251,32 +340,60 @@ async function loadTracking() {
       .querySelectorAll("[data-order-code]")
       .forEach((x) => (x.textContent = `#${order.code}`));
     document
+      .querySelectorAll("[data-order-subtotal]")
+      .forEach((x) => (x.textContent = money(order.subtotal)));
+    document
+      .querySelectorAll("[data-order-shipping]")
+      .forEach((x) => (x.textContent = money(order.shipping_fee)));
+    document
       .querySelectorAll("[data-order-total]")
       .forEach((x) => (x.textContent = money(order.total)));
+
+    // Cada producto con su cantidad en un cuadrito.
     const summary = document.querySelector("#orderSummaryItems");
     if (summary)
       summary.innerHTML = order.items
         .map(
           (i) =>
-            `<div class="summary-item"><span>${i.quantity} × ${i.name}</span><strong>${money(i.lineTotal)}</strong></div>`,
+            `<div class="summary-item"><span class="qty-badge">${i.quantity}×</span><span class="summary-name">${i.name}</span><strong>${money(i.lineTotal)}</strong></div>`,
         )
         .join("");
+
+    // Datos de entrega, uno debajo del otro.
     const delivery = document.querySelector("#orderDeliveryInfo");
-    if (delivery)
-      delivery.innerHTML = `<p><strong>Cliente:</strong> ${order.customer_first_name} ${order.customer_last_name}</p><p><strong>Teléfono:</strong> ${order.phone}</p><p><strong>Barrio:</strong> ${order.neighborhood}</p><p><strong>Dirección:</strong> ${order.address}</p><p><strong>Método de pago:</strong> ${order.payment_method}</p>`;
+    if (delivery) {
+      const row = (label, value) =>
+        `<div class="info-row"><span class="info-label">${label}</span><strong>${value}</strong></div>`;
+      delivery.innerHTML =
+        row(
+          "Cliente",
+          `${order.customer_first_name} ${order.customer_last_name}`,
+        ) +
+        row("Teléfono", order.phone) +
+        row("Barrio", order.neighborhood) +
+        row("Dirección", order.address) +
+        `<div class="pay-badge"><span>Método de pago</span><span>${order.payment_method}</span></div>`;
+    }
+
     setTrackingStatus(order.status);
+    updateStatusChip(order.status);
     trackingCode = order.code;
     updateCancelUI(order.status);
+    showTrackingView(order.status);
   } catch (error) {
-    alert(error.message);
+    showToast(error.message);
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   loadProducts();
+  renderFooter();
   renderCart();
   updateBadge();
   loadTracking();
+  // En la página de seguimiento, revisa el estado del pedido cada 15 segundos.
+  if (document.querySelector(".tracking")) setInterval(loadTracking, 15000);
+
   document
     .querySelector("#cancelOrderBtn")
     ?.addEventListener("click", cancelOrder);
@@ -300,6 +417,9 @@ document.addEventListener("DOMContentLoaded", () => {
   soloLetras(document.querySelector("#nombreInput"));
   soloLetras(document.querySelector("#apellidoInput"));
   soloNumeros(document.querySelector("#telefonoInput"), 10);
+  document.querySelector("#terminosCheck")?.addEventListener("change", (e) => {
+    e.target.closest(".terms-check")?.classList.remove("error");
+  });
   const barrioSelect = document.querySelector("#barrioSelect");
   const barrioOtroWrap = document.querySelector("#barrioOtroWrap");
   const barrioOtroInput = document.querySelector("#barrioOtroInput");
