@@ -1503,3 +1503,66 @@ textarea {
   font-weight: 700;
   line-height: 1.4;
 }
+
+/* =========================================================
+   Carrito / sección "Tu pedido" con desplazamiento interno
+   ---------------------------------------------------------
+   Mantiene visible el resumen (subtotal, domicilio, total y
+   botón de confirmar) y habilita scroll únicamente sobre la
+   lista de productos cuando el pedido contiene muchos ítems.
+   ========================================================= */
+@media (min-width: 981px) {
+  .cart-panel {
+    /* Limita el alto del panel al espacio visible de la ventana. */
+    max-height: calc(100vh - 120px);
+    /* Convierte el panel en una columna para separar lista y totales. */
+    display: flex;
+    flex-direction: column;
+    /* Evita que el contenido se desborde por fuera del panel. */
+    overflow: hidden;
+  }
+
+  .cart-panel > h3 {
+    /* El título siempre permanece visible. */
+    flex-shrink: 0;
+  }
+
+  #cartItems {
+    /* La lista ocupa el espacio disponible dentro del panel. */
+    flex: 1 1 auto;
+    /* Necesario para que un hijo flex pueda reducir su altura y hacer scroll. */
+    min-height: 0;
+    /* Activa el scroll vertical cuando hay varios productos. */
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Da espacio entre el contenido y la barra de desplazamiento. */
+    padding-right: 8px;
+    /* Hace más natural el desplazamiento en dispositivos compatibles. */
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .cart-panel .totals {
+    /* El resumen del pedido no se desplaza junto con los productos. */
+    flex-shrink: 0;
+    background: #fff;
+  }
+
+  /* Barra de desplazamiento discreta para navegadores WebKit/Chromium. */
+  #cartItems::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  #cartItems::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #cartItems::-webkit-scrollbar-thumb {
+    background: #d8d0c7;
+    border-radius: 10px;
+  }
+
+  #cartItems::-webkit-scrollbar-thumb:hover {
+    background: #bfb5aa;
+  }
+}
