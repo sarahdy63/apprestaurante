@@ -3,14 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Gastro Admin | Pedidos</title>
+    <title>Patacon Admin | Pedidos</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
 
   <body class="admin-body">
     <div class="admin-shell">
       <aside class="sidebar">
-        <div class="logo">GASTRO</div>
+        <a class="logo" href="index.html">
+          <img
+            src="assets/img/logo.png"
+            alt="Patacón Pisa'o"
+            class="logo-img"
+          />
+        </a>
         <a class="side-link active" href="admin-orders.html">Pedidos</a
         ><a class="side-link" href="admin-menu.html">Menú</a
         ><a class="side-link" href="index.html">Ver sitio</a
@@ -29,9 +35,6 @@
           <div>
             <span class="eyebrow">Admin dashboard</span>
             <h1>Gestión de pedidos</h1>
-            <p class="small">
-              Supervisa y actualiza el flujo de pedidos en tiempo real.
-            </p>
           </div>
         </div>
         <section class="stats">
@@ -51,34 +54,64 @@
         </section>
 
         <!-- Filtros rápidos por estado. Se pueden seleccionar uno o varios. -->
-        <section class="order-status-filters" aria-label="Filtrar pedidos por estado">
-          <button class="order-status-card received" type="button" data-order-status="RECIBIDO" aria-pressed="false">
+        <section
+          class="order-status-filters"
+          aria-label="Filtrar pedidos por estado"
+        >
+          <button
+            class="order-status-card received"
+            type="button"
+            data-order-status="RECIBIDO"
+            aria-pressed="false"
+          >
             <span class="order-status-dot"></span>
             <span class="order-status-label">Recibidos</span>
             <strong id="statusCountReceived">0</strong>
           </button>
-          <button class="order-status-card preparing" type="button" data-order-status="PREPARANDO" aria-pressed="false">
+          <button
+            class="order-status-card preparing"
+            type="button"
+            data-order-status="PREPARANDO"
+            aria-pressed="false"
+          >
             <span class="order-status-dot"></span>
             <span class="order-status-label">Preparando</span>
             <strong id="statusCountPreparing">0</strong>
           </button>
-          <button class="order-status-card route" type="button" data-order-status="EN_CAMINO" aria-pressed="false">
+          <button
+            class="order-status-card route"
+            type="button"
+            data-order-status="EN_CAMINO"
+            aria-pressed="false"
+          >
             <span class="order-status-dot"></span>
             <span class="order-status-label">En camino</span>
             <strong id="statusCountRoute">0</strong>
           </button>
-          <button class="order-status-card delivered" type="button" data-order-status="ENTREGADO" aria-pressed="false">
+          <button
+            class="order-status-card delivered"
+            type="button"
+            data-order-status="ENTREGADO"
+            aria-pressed="false"
+          >
             <span class="order-status-dot"></span>
             <span class="order-status-label">Entregados</span>
             <strong id="statusCountDelivered">0</strong>
           </button>
-          <button class="order-status-card cancelled" type="button" data-order-status="CANCELADO" aria-pressed="false">
+          <button
+            class="order-status-card cancelled"
+            type="button"
+            data-order-status="CANCELADO"
+            aria-pressed="false"
+          >
             <span class="order-status-dot"></span>
             <span class="order-status-label">Cancelados</span>
             <strong id="statusCountCancelled">0</strong>
           </button>
         </section>
-        <p id="activeStatusHelp" class="status-filter-help">Sin estados seleccionados: mostrando todos los pedidos.</p>
+        <p id="activeStatusHelp" class="status-filter-help">
+          Sin estados seleccionados: mostrando todos los pedidos.
+        </p>
 
         <div class="panel filters">
           <input

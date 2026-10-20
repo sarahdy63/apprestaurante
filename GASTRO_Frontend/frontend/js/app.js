@@ -188,7 +188,7 @@ function renderFooter() {
       </div>
       <div>
         <h4>Contacto</h4>
-        <p>+57 300 123 4567<br />info@gastro.com<br />Neiva, Huila</p>
+        <p>315 648 11 63<br />jhonsuarez@gmail.com<br />Neiva, Huila</p>
       </div>
     </div>`;
 }
