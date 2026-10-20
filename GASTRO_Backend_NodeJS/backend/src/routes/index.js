@@ -2,6 +2,8 @@
 const express = require("express");
 // Importa el middleware de autenticación JWT.
 const requireAuth = require("../middleware/auth");
+// Importa el middleware que recibe y almacena imágenes de productos.
+const uploadProductImage = require("../middleware/uploadProductImage");
 // Importa el controlador de autenticación.
 const auth = require("../controllers/authController");
 // Importa el controlador de productos.
@@ -34,11 +36,21 @@ router.get("/restaurant", restaurant.get);
 // Protege la lista administrativa de productos con JWT.
 router.get("/admin/products", requireAuth, products.listAdmin);
 // Protege la creación de productos con JWT.
-router.post("/admin/products", requireAuth, products.create);
+router.post(
+  "/admin/products",
+  requireAuth,
+  uploadProductImage,
+  products.create,
+);
 // Suma o fija el stock de un producto (solo administrador).
 router.patch("/admin/products/:id/stock", requireAuth, products.updateStock);
 // Protege la edición de productos con JWT.
-router.put("/admin/products/:id", requireAuth, products.update);
+router.put(
+  "/admin/products/:id",
+  requireAuth,
+  uploadProductImage,
+  products.update,
+);
 // Protege la eliminación lógica de productos con JWT.
 router.delete("/admin/products/:id", requireAuth, products.remove);
 // Protege la consulta de pedidos administrativos con JWT.

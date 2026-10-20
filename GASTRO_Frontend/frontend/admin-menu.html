@@ -135,18 +135,25 @@
             ></textarea>
           </div>
           <div class="field full">
-            <label>Imagen</label>
+            <label for="productImage">Imagen del producto</label>
             <img
               id="imagePreview"
               class="image-preview"
-              alt="Vista previa"
+              alt="Vista previa de la imagen del producto"
               hidden
             />
-            <input
-              id="productImage"
-              type="text"
-              placeholder="assets/img/mi-producto.jpg o un enlace de internet"
-            />
+            <div class="file-upload-box">
+              <input
+                id="productImage"
+                name="image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+              />
+              <span class="small">
+                Formatos permitidos: JPG, JPEG, PNG o WEBP. Tamaño máximo: 5 MB.
+              </span>
+              <span id="currentImageText" class="small" hidden></span>
+            </div>
           </div>
           <button
             type="button"

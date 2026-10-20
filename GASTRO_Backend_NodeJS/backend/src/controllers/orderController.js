@@ -194,11 +194,22 @@ async function list(req, res, next) {
       const like = `%${q}%`;
       params.push(like, like, like);
     }
-    // Filtro por estado del pedido.
-    const status = (req.query.status || "").trim();
-    if (status) {
-      conditions.push("o.status = ?");
-      params.push(status);
+    // Filtro por uno o varios estados. El frontend puede enviar, por ejemplo:
+    // ?status=RECIBIDO,PREPARANDO,EN_CAMINO
+    const allowedStatuses = [
+      "RECIBIDO",
+      "PREPARANDO",
+      "EN_CAMINO",
+      "ENTREGADO",
+      "CANCELADO",
+    ];
+    const statuses = (req.query.status || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter((value) => allowedStatuses.includes(value));
+    if (statuses.length) {
+      conditions.push(`o.status IN (${statuses.map(() => "?").join(",")})`);
+      params.push(...statuses);
     }
     // Filtro por día (formato AAAA-MM-DD).
     const date = (req.query.date || "").trim();
@@ -307,19 +318,29 @@ async function summary(req, res, next) {
     const [daily] = await pool.query(
       "SELECT COUNT(*) AS ordersToday, COALESCE(SUM(CASE WHEN status <> 'CANCELADO' THEN total ELSE 0 END), 0) AS salesToday FROM orders WHERE DATE(created_at) = CURDATE()",
     );
-    // Cuenta pedidos por preparar.
-    const [pending] = await pool.query(
-      "SELECT COUNT(*) AS pending FROM orders WHERE status IN ('RECIBIDO','PREPARANDO')",
+    // Cuenta todos los estados en una sola consulta para alimentar las tarjetas superiores.
+    const [statusCounts] = await pool.query(
+      "SELECT " +
+        "SUM(status = 'RECIBIDO') AS received, " +
+        "SUM(status = 'PREPARANDO') AS preparing, " +
+        "SUM(status = 'EN_CAMINO') AS routes, " +
+        "SUM(status = 'ENTREGADO') AS delivered, " +
+        "SUM(status = 'CANCELADO') AS cancelled " +
+        "FROM orders",
     );
-    // Cuenta pedidos que se encuentran en camino.
-    const [routes] = await pool.query(
-      "SELECT COUNT(*) AS routes FROM orders WHERE status = 'EN_CAMINO'",
-    );
-    // Devuelve los cuatro indicadores requeridos por el dashboard.
+    // Mantiene 'pending' por compatibilidad con el indicador actual Por preparar.
+    const pending =
+      Number(statusCounts[0].received || 0) +
+      Number(statusCounts[0].preparing || 0);
+    // Devuelve los indicadores generales y los conteos individuales por estado.
     return res.json({
       ...daily[0],
-      pending: pending[0].pending,
-      routes: routes[0].routes,
+      pending,
+      received: Number(statusCounts[0].received || 0),
+      preparing: Number(statusCounts[0].preparing || 0),
+      routes: Number(statusCounts[0].routes || 0),
+      delivered: Number(statusCounts[0].delivered || 0),
+      cancelled: Number(statusCounts[0].cancelled || 0),
     });
     // Captura errores.
   } catch (error) {

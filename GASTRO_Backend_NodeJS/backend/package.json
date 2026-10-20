@@ -15,7 +15,8 @@
     "handlebars": "^4.7.9",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.3",
-    "nodemailer": "^10.0.13"
+    "nodemailer": "^10.0.13",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"

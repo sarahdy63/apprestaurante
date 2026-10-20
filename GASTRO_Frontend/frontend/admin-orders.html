@@ -49,6 +49,37 @@
             <span>Ventas del día</span><strong id="statSales">$0</strong>
           </div>
         </section>
+
+        <!-- Filtros rápidos por estado. Se pueden seleccionar uno o varios. -->
+        <section class="order-status-filters" aria-label="Filtrar pedidos por estado">
+          <button class="order-status-card received" type="button" data-order-status="RECIBIDO" aria-pressed="false">
+            <span class="order-status-dot"></span>
+            <span class="order-status-label">Recibidos</span>
+            <strong id="statusCountReceived">0</strong>
+          </button>
+          <button class="order-status-card preparing" type="button" data-order-status="PREPARANDO" aria-pressed="false">
+            <span class="order-status-dot"></span>
+            <span class="order-status-label">Preparando</span>
+            <strong id="statusCountPreparing">0</strong>
+          </button>
+          <button class="order-status-card route" type="button" data-order-status="EN_CAMINO" aria-pressed="false">
+            <span class="order-status-dot"></span>
+            <span class="order-status-label">En camino</span>
+            <strong id="statusCountRoute">0</strong>
+          </button>
+          <button class="order-status-card delivered" type="button" data-order-status="ENTREGADO" aria-pressed="false">
+            <span class="order-status-dot"></span>
+            <span class="order-status-label">Entregados</span>
+            <strong id="statusCountDelivered">0</strong>
+          </button>
+          <button class="order-status-card cancelled" type="button" data-order-status="CANCELADO" aria-pressed="false">
+            <span class="order-status-dot"></span>
+            <span class="order-status-label">Cancelados</span>
+            <strong id="statusCountCancelled">0</strong>
+          </button>
+        </section>
+        <p id="activeStatusHelp" class="status-filter-help">Sin estados seleccionados: mostrando todos los pedidos.</p>
+
         <div class="panel filters">
           <input
             id="orderSearch"

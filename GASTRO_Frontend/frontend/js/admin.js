@@ -9,13 +9,19 @@ const adminMoney = (value) =>
   }).format(Number(value || 0));
 
 async function adminApi(path, options = {}) {
+  // FormData debe viajar sin Content-Type manual para que el navegador agregue el boundary multipart.
+  const isFormData = options.body instanceof FormData;
+  // Construye los encabezados comunes de autenticación.
+  const headers = {
+    ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
+    ...(options.headers || {}),
+  };
+  // Las peticiones JSON sí necesitan Content-Type application/json.
+  if (!isFormData) headers["Content-Type"] = "application/json";
+  // Ejecuta la petición contra la API administrativa.
   const response = await fetch(`${ADMIN_API}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
-      ...(options.headers || {}),
-    },
     ...options,
+    headers,
   });
   const data = await response.json().catch(() => ({}));
   if (response.status === 401 && !path.includes("/auth/login")) {
@@ -189,25 +195,54 @@ function setupInventoryFilters() {
   });
 }
 
-// Muestra una vista previa de la imagen según lo que haya en el campo.
+// Muestra una vista previa de la imagen seleccionada desde el computador.
 function updateImagePreview() {
+  // Obtiene el input de archivo y la etiqueta de vista previa.
   const input = document.querySelector("#productImage");
   const preview = document.querySelector("#imagePreview");
+  // Sale si la pantalla actual no contiene estos elementos.
   if (!input || !preview) return;
-  const value = input.value.trim();
-  if (value) {
-    preview.src = value;
-    preview.hidden = false;
-  } else {
-    preview.hidden = true;
+  // Obtiene el primer archivo seleccionado por el administrador.
+  const file = input.files?.[0];
+  // Si no se seleccionó un archivo, conserva la imagen actual al editar o la oculta al crear.
+  if (!file) {
+    const currentImage = preview.dataset.currentImage || "";
+    if (currentImage) {
+      preview.src = currentImage;
+      preview.hidden = false;
+    } else {
+      preview.removeAttribute("src");
+      preview.hidden = true;
+    }
+    return;
   }
+  // Valida de forma inmediata el tipo de archivo antes de enviarlo al backend.
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type)) {
+    input.value = "";
+    alert("Selecciona una imagen JPG, JPEG, PNG o WEBP.");
+    return updateImagePreview();
+  }
+  // Impide seleccionar imágenes mayores a 5 MB.
+  if (file.size > 5 * 1024 * 1024) {
+    input.value = "";
+    alert("La imagen no puede superar los 5 MB.");
+    return updateImagePreview();
+  }
+  // Crea una URL temporal local para mostrar la imagen sin subirla todavía.
+  preview.src = URL.createObjectURL(file);
+  // Hace visible la vista previa.
+  preview.hidden = false;
 }
 
 function editProduct(id) {
+  // Busca en memoria el producto que se desea editar.
   const product = adminProductsCache.find(
     (item) => Number(item.id) === Number(id),
   );
+  // Sale si el producto ya no existe en la caché.
   if (!product) return;
+  // Carga los datos actuales del producto en el formulario.
   document.querySelector("#productId").value = product.id;
   document.querySelector("#productName").value = product.name;
   document.querySelector("#productCategory").value = product.category;
@@ -216,47 +251,89 @@ function editProduct(id) {
   document.querySelector("#productStockHint").textContent =
     "Cuántas unidades hay ahora en el local. Si llegó mercancía, suma lo que llegó a este número.";
   document.querySelector("#productDescription").value = product.desc || "";
-  document.querySelector("#productImage").value = product.img || "";
+  // Limpia el selector porque los navegadores no permiten asignar una ruta local a un input file.
+  const imageInput = document.querySelector("#productImage");
+  imageInput.value = "";
+  // Guarda la ruta actual en el preview para conservarla cuando no se seleccione otra imagen.
+  const preview = document.querySelector("#imagePreview");
+  preview.dataset.currentImage = product.img || "";
+  // Informa al administrador que la imagen actual se mantiene si no elige una nueva.
+  const currentImageText = document.querySelector("#currentImageText");
+  currentImageText.textContent = product.img
+    ? `Imagen actual: ${product.img}. Selecciona otra solo si deseas reemplazarla.`
+    : "Este producto aún no tiene una imagen cargada.";
+  currentImageText.hidden = false;
+  // Cambia el título del modal al modo edición.
   document.querySelector("#productModalTitle").textContent = "Editar producto";
+  // Muestra la imagen actual del producto.
   updateImagePreview();
+  // Abre el formulario modal.
   openModal("productModal");
 }
 
 function prepareNewProduct() {
+  // Limpia todos los campos del formulario para crear un producto desde cero.
   document.querySelector("#productForm").reset();
+  // Limpia el identificador oculto para indicar que se trata de una creación.
   document.querySelector("#productId").value = "";
+  // Muestra la ayuda correspondiente al stock inicial.
   document.querySelector("#productStockHint").textContent =
     "Cantidad con la que arranca este producto en el local.";
+  // Cambia el título del modal al modo creación.
   document.querySelector("#productModalTitle").textContent =
     "Agregar producto nuevo";
-  updateImagePreview();
+  // Limpia cualquier imagen que haya quedado de una edición anterior.
+  const preview = document.querySelector("#imagePreview");
+  preview.dataset.currentImage = "";
+  preview.removeAttribute("src");
+  preview.hidden = true;
+  // Oculta el texto de la imagen actual porque el producto todavía no existe.
+  const currentImageText = document.querySelector("#currentImageText");
+  currentImageText.textContent = "";
+  currentImageText.hidden = true;
+  // Abre el modal de producto.
   openModal("productModal");
 }
 
 async function saveProduct(e) {
+  // Evita que el formulario recargue la página.
   e.preventDefault();
+  // Lee el id; si está vacío se creará un producto nuevo.
   const id = document.querySelector("#productId").value;
+  // Convierte el stock a número.
   const stock = Number(document.querySelector("#productStock").value);
+  // Valida que el stock sea un entero válido.
   if (!Number.isInteger(stock) || stock < 0)
     return alert("El stock debe ser un número entero, cero o mayor.");
-  const body = {
-    name: document.querySelector("#productName").value,
-    category: document.querySelector("#productCategory").value,
-    price: Number(document.querySelector("#productPrice").value),
-    desc: document.querySelector("#productDescription").value,
-    img: document.querySelector("#productImage").value,
-  };
+  // Obtiene el archivo seleccionado por el administrador.
+  const imageFile = document.querySelector("#productImage").files?.[0];
+  // Al crear un producto la imagen es obligatoria para evitar tarjetas sin fotografía.
+  if (!id && !imageFile)
+    return alert("Selecciona una imagen para el nuevo producto.");
+  // Crea un FormData porque además de texto se enviará un archivo binario.
+  const formData = new FormData();
+  // Agrega el nombre del producto.
+  formData.append("name", document.querySelector("#productName").value.trim());
+  // Agrega la categoría seleccionada.
+  formData.append("category", document.querySelector("#productCategory").value);
+  // Agrega el precio como texto; Multer lo deja disponible en req.body.
+  formData.append("price", document.querySelector("#productPrice").value);
+  // Agrega la descripción.
+  formData.append("desc", document.querySelector("#productDescription").value);
+  // Solo agrega el campo image cuando realmente existe un archivo seleccionado.
+  if (imageFile) formData.append("image", imageFile);
   try {
     if (id) {
-      // Edita los datos del producto.
+      // Edita los datos y opcionalmente reemplaza la imagen del producto.
       await adminApi(`/admin/products/${id}`, {
         method: "PUT",
-        body: JSON.stringify(body),
+        body: formData,
       });
-      // Si el admin cambió el stock, lo guarda con la ruta del stock.
+      // Busca el stock anterior para evitar una llamada adicional si no cambió.
       const current = adminProductsCache.find(
         (item) => Number(item.id) === Number(id),
       );
+      // Si el administrador cambió el stock, lo guarda con la ruta especializada de inventario.
       if (current && Number(current.stock) !== stock) {
         await adminApi(`/admin/products/${id}/stock`, {
           method: "PATCH",
@@ -264,16 +341,20 @@ async function saveProduct(e) {
         });
       }
     } else {
-      // Producto nuevo: el stock viaja junto con los datos.
-      body.stock = stock;
+      // En un producto nuevo el stock viaja junto con el resto de los campos.
+      formData.append("stock", String(stock));
+      // Crea el producto y carga su imagen en una sola petición.
       await adminApi("/admin/products", {
         method: "POST",
-        body: JSON.stringify(body),
+        body: formData,
       });
     }
+    // Cierra el formulario después de una operación exitosa.
     closeModal("productModal");
+    // Recarga la tabla para mostrar la información actualizada.
     await loadAdminProducts();
   } catch (error) {
+    // Muestra al administrador cualquier mensaje devuelto por la API.
     alert(error.message);
   }
 }
@@ -289,7 +370,14 @@ async function deleteProduct(id) {
 }
 
 // Guarda qué página y qué filtros está usando el admin.
-const ordersState = { page: 1, limit: 10, q: "", status: "", date: "" };
+const ordersState = {
+  page: 1,
+  limit: 10,
+  q: "",
+  // Permite seleccionar uno o varios estados desde las tarjetas superiores.
+  statuses: [],
+  date: "",
+};
 
 async function loadDashboard() {
   const tbody = document.querySelector("#ordersBody");
@@ -302,7 +390,9 @@ async function loadDashboard() {
       limit: ordersState.limit,
     });
     if (ordersState.q) params.set("q", ordersState.q);
-    if (ordersState.status) params.set("status", ordersState.status);
+    // El backend admite varios estados separados por coma, por ejemplo RECIBIDO,PREPARANDO.
+    if (ordersState.statuses.length)
+      params.set("status", ordersState.statuses.join(","));
     if (ordersState.date) params.set("date", ordersState.date);
     const [summary, result] = await Promise.all([
       adminApi("/admin/dashboard/summary"),
@@ -314,6 +404,12 @@ async function loadDashboard() {
     document.querySelector("#statSales").textContent = adminMoney(
       summary.salesToday,
     );
+    // Actualiza los contadores de las tarjetas de estado superiores.
+    document.querySelector("#statusCountReceived").textContent = summary.received || 0;
+    document.querySelector("#statusCountPreparing").textContent = summary.preparing || 0;
+    document.querySelector("#statusCountRoute").textContent = summary.routes || 0;
+    document.querySelector("#statusCountDelivered").textContent = summary.delivered || 0;
+    document.querySelector("#statusCountCancelled").textContent = summary.cancelled || 0;
     // Ahora los pedidos vienen dentro de result.data.
     const orders = result.data;
     if (!orders.length) {
@@ -322,7 +418,7 @@ async function loadDashboard() {
       tbody.innerHTML = orders
         .map(
           (o) =>
-            `<tr><td>#${o.code}</td><td>${o.customer}</td><td>${o.products}</td><td>${adminMoney(o.total)}</td><td><select onchange="changeOrderStatus(${o.id}, this.value)"><option value="RECIBIDO" ${o.status === "RECIBIDO" ? "selected" : ""}>Recibido</option><option value="PREPARANDO" ${o.status === "PREPARANDO" ? "selected" : ""}>Preparando</option><option value="EN_CAMINO" ${o.status === "EN_CAMINO" ? "selected" : ""}>En camino</option><option value="ENTREGADO" ${o.status === "ENTREGADO" ? "selected" : ""}>Entregado</option><option value="CANCELADO" ${o.status === "CANCELADO" ? "selected" : ""}>Cancelado</option></select></td><td><a href="tracking.html?code=${encodeURIComponent(o.code)}" target="_blank">Ver</a></td></tr>`,
+            `<tr class="order-row status-${o.status.toLowerCase()}"><td>#${o.code}</td><td>${o.customer}</td><td>${o.products}</td><td>${adminMoney(o.total)}</td><td><select class="order-status-select status-${o.status.toLowerCase()}" onchange="changeOrderStatus(${o.id}, this.value)"><option value="RECIBIDO" ${o.status === "RECIBIDO" ? "selected" : ""}>Recibido</option><option value="PREPARANDO" ${o.status === "PREPARANDO" ? "selected" : ""}>Preparando</option><option value="EN_CAMINO" ${o.status === "EN_CAMINO" ? "selected" : ""}>En camino</option><option value="ENTREGADO" ${o.status === "ENTREGADO" ? "selected" : ""}>Entregado</option><option value="CANCELADO" ${o.status === "CANCELADO" ? "selected" : ""}>Cancelado</option></select></td><td><a href="tracking.html?code=${encodeURIComponent(o.code)}" target="_blank">Ver</a></td></tr>`,
         )
         .join("");
     }
@@ -375,8 +471,10 @@ function setupOrderFilters() {
     }, 400);
   });
   status.addEventListener("change", () => {
-    ordersState.status = status.value;
+    // El selector tradicional funciona como selección rápida de un solo estado.
+    ordersState.statuses = status.value ? [status.value] : [];
     ordersState.page = 1;
+    syncOrderStatusCards();
     loadDashboard();
   });
   date.addEventListener("change", () => {
@@ -388,9 +486,56 @@ function setupOrderFilters() {
     search.value = "";
     status.value = "";
     date.value = "";
-    Object.assign(ordersState, { page: 1, q: "", status: "", date: "" });
+    Object.assign(ordersState, { page: 1, q: "", statuses: [], date: "" });
+    syncOrderStatusCards();
     loadDashboard();
   });
+}
+
+// Marca visualmente las tarjetas activas y mantiene sincronizado el selector tradicional.
+function syncOrderStatusCards() {
+  const cards = document.querySelectorAll("[data-order-status]");
+  cards.forEach((card) => {
+    const active = ordersState.statuses.includes(card.dataset.orderStatus);
+    card.classList.toggle("active", active);
+    card.setAttribute("aria-pressed", String(active));
+  });
+
+  const select = document.querySelector("#orderStatusFilter");
+  // Si solo hay un estado, también se refleja en el select. Con varios, queda en "Todos".
+  if (select) select.value = ordersState.statuses.length === 1 ? ordersState.statuses[0] : "";
+
+  const help = document.querySelector("#activeStatusHelp");
+  if (help) {
+    const labels = {
+      RECIBIDO: "Recibidos",
+      PREPARANDO: "Preparando",
+      EN_CAMINO: "En camino",
+      ENTREGADO: "Entregados",
+      CANCELADO: "Cancelados",
+    };
+    help.textContent = ordersState.statuses.length
+      ? `Mostrando: ${ordersState.statuses.map((s) => labels[s]).join(", ")}. Haz clic de nuevo para quitar un estado.`
+      : "Sin estados seleccionados: mostrando todos los pedidos.";
+  }
+}
+
+// Permite activar o desactivar varios filtros de estado a la vez.
+function setupOrderStatusCards() {
+  const cards = document.querySelectorAll("[data-order-status]");
+  if (!cards.length) return;
+  cards.forEach((card) => {
+    card.addEventListener("click", () => {
+      const value = card.dataset.orderStatus;
+      const index = ordersState.statuses.indexOf(value);
+      if (index >= 0) ordersState.statuses.splice(index, 1);
+      else ordersState.statuses.push(value);
+      ordersState.page = 1;
+      syncOrderStatusCards();
+      loadDashboard();
+    });
+  });
+  syncOrderStatusCards();
 }
 
 async function changeOrderStatus(id, status) {
@@ -414,11 +559,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#adminLogin")?.addEventListener("submit", adminLogin);
   document
     .querySelector("#productImage")
-    ?.addEventListener("input", updateImagePreview);
+    ?.addEventListener("change", updateImagePreview);
   document
     .querySelector("#productForm")
     ?.addEventListener("submit", saveProduct);
   setupOrderFilters();
+setupOrderStatusCards();
   setupInventoryFilters();
   loadAdminProducts();
   loadDashboard();

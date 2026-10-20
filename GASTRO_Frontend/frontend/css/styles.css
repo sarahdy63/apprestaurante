@@ -1566,3 +1566,125 @@ textarea {
     background: #bfb5aa;
   }
 }
+
+/* Contenedor del selector de archivos de productos. */
+.file-upload-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Hace que el selector de archivo use el mismo ancho que los demás campos. */
+.file-upload-box input[type="file"] {
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Da estilo al botón nativo del selector de archivos en navegadores modernos. */
+.file-upload-box input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   ADMIN PEDIDOS: filtros rápidos y color visual por estado
+   ========================================================= */
+.order-status-filters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(135px, 1fr));
+  gap: 12px;
+  margin: 0 0 10px;
+}
+
+.order-status-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: #382d27;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  text-align: left;
+}
+
+.order-status-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(47, 32, 24, .08);
+}
+
+.order-status-card.active {
+  border-width: 2px;
+  box-shadow: 0 6px 18px rgba(47, 32, 24, .10);
+}
+
+.order-status-card .order-status-label {
+  font-weight: 800;
+  font-size: .88rem;
+}
+
+.order-status-card strong {
+  font-size: 1.15rem;
+}
+
+.order-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #999;
+}
+
+.order-status-card.received .order-status-dot { background: #4f7cac; }
+.order-status-card.preparing .order-status-dot { background: #d58a20; }
+.order-status-card.route .order-status-dot { background: #7559c9; }
+.order-status-card.delivered .order-status-dot { background: #2f8a5b; }
+.order-status-card.cancelled .order-status-dot { background: #c64a4a; }
+
+.order-status-card.received.active { border-color: #4f7cac; background: #f1f6fc; }
+.order-status-card.preparing.active { border-color: #d58a20; background: #fff8e8; }
+.order-status-card.route.active { border-color: #7559c9; background: #f5f2ff; }
+.order-status-card.delivered.active { border-color: #2f8a5b; background: #eef9f3; }
+.order-status-card.cancelled.active { border-color: #c64a4a; background: #fff2f2; }
+
+.status-filter-help {
+  margin: 0 0 14px 2px;
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+/* Cada fila conserva una señal de color suave según el estado. */
+.data-table tbody tr.order-row {
+  border-left: 4px solid transparent;
+  transition: background .15s ease;
+}
+.data-table tbody tr.order-row:hover { filter: brightness(.985); }
+.data-table tbody tr.status-recibido { background: #f4f8fd; border-left-color: #4f7cac; }
+.data-table tbody tr.status-preparando { background: #fffaf0; border-left-color: #d58a20; }
+.data-table tbody tr.status-en_camino { background: #f7f4ff; border-left-color: #7559c9; }
+.data-table tbody tr.status-entregado { background: #f1faf5; border-left-color: #2f8a5b; }
+.data-table tbody tr.status-cancelado { background: #fff4f4; border-left-color: #c64a4a; }
+
+.order-status-select.status-recibido { border-color: #9bb9da; background: #f4f8fd; }
+.order-status-select.status-preparando { border-color: #e3bd79; background: #fffaf0; }
+.order-status-select.status-en_camino { border-color: #b3a4e6; background: #f7f4ff; }
+.order-status-select.status-entregado { border-color: #8fc7aa; background: #f1faf5; }
+.order-status-select.status-cancelado { border-color: #e0a0a0; background: #fff4f4; }
+
+@media (max-width: 1100px) {
+  .order-status-filters { grid-template-columns: repeat(3, minmax(140px, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .order-status-filters { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+}
