@@ -1,7 +1,7 @@
 // Importa el pool de MySQL.
 const pool = require("../config/db");
-// Define el costo fijo de domicilio usado por esta versión básica.
-const SHIPPING_FEE = 6000;
+// Valor mínimo de los productos (sin domicilio) para aceptar un pedido.
+// El valor del domicilio ya no es fijo: sale de la zona del barrio (tablas neighborhoods y delivery_zones).
 const MIN_ORDER = 30000;
 // Crea un código público legible para identificar el pedido.
 function createCode() {
@@ -32,6 +32,23 @@ async function create(req, res, next) {
       return res.status(400).json({
         message: "Las cantidades deben ser enteros mayores que cero.",
       });
+    // Valida que el cliente haya elegido un barrio de la lista.
+    const neighborhoodId = Number(customer.neighborhoodId);
+    if (!Number.isInteger(neighborhoodId) || neighborhoodId <= 0)
+      return res
+        .status(400)
+        .json({ message: "Selecciona un barrio de la lista." });
+    // Busca el barrio y la tarifa de su zona en MySQL (no se confía en el valor del navegador).
+    const [barrios] = await connection.query(
+      "SELECT n.id, n.name, z.shipping_fee FROM neighborhoods n JOIN delivery_zones z ON z.id = n.zone_id WHERE n.id = ? AND n.active = 1 LIMIT 1",
+      [neighborhoodId],
+    );
+    // Rechaza el pedido si el barrio no existe o ya no tiene cobertura.
+    if (!barrios.length)
+      return res.status(400).json({
+        message: "Lo sentimos, por ahora no tenemos cobertura de domicilio en ese barrio.",
+      });
+    const barrio = barrios[0];
     // Extrae todos los identificadores de producto recibidos.
     const ids = items.map((item) => Number(item.productId));
     // Crea los signos ? necesarios para una consulta IN segura.
@@ -63,8 +80,8 @@ async function create(req, res, next) {
         message: `El pedido mínimo para domicilio es de $${MIN_ORDER.toLocaleString("es-CO")}. Te faltan $${(MIN_ORDER - subtotal).toLocaleString("es-CO")}.`,
       });
 
-    // Define el costo de domicilio para pedidos con valor positivo.
-    const shipping = subtotal > 0 ? SHIPPING_FEE : 0;
+    // El costo del domicilio es la tarifa de la zona del barrio elegido.
+    const shipping = Number(barrio.shipping_fee);
     // Calcula el total final que quedará persistido.
     const total = subtotal + shipping;
     // Genera el código visible del pedido.
@@ -73,13 +90,14 @@ async function create(req, res, next) {
     await connection.beginTransaction();
     // Inserta la cabecera del pedido.
     const [orderResult] = await connection.query(
-      "INSERT INTO orders (code, customer_first_name, customer_last_name, phone, neighborhood, address, payment_method, subtotal, shipping_fee, total, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'RECIBIDO')",
+      "INSERT INTO orders (code, customer_first_name, customer_last_name, phone, neighborhood_id, neighborhood, address, payment_method, subtotal, shipping_fee, total, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'RECIBIDO')",
       [
         code,
         customer.firstName,
         customer.lastName,
         customer.phone,
-        customer.neighborhood,
+        barrio.id,
+        barrio.name,
         customer.address,
         paymentMethod,
         subtotal,

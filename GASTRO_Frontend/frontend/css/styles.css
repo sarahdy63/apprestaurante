@@ -1592,7 +1592,6 @@ textarea {
   cursor: pointer;
 }
 
-
 /* =========================================================
    ADMIN PEDIDOS: filtros rápidos y color visual por estado
    ========================================================= */
@@ -1615,23 +1614,26 @@ textarea {
   background: #fff;
   color: #382d27;
   cursor: pointer;
-  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
   text-align: left;
 }
 
 .order-status-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(47, 32, 24, .08);
+  box-shadow: 0 6px 18px rgba(47, 32, 24, 0.08);
 }
 
 .order-status-card.active {
   border-width: 2px;
-  box-shadow: 0 6px 18px rgba(47, 32, 24, .10);
+  box-shadow: 0 6px 18px rgba(47, 32, 24, 0.1);
 }
 
 .order-status-card .order-status-label {
   font-weight: 800;
-  font-size: .88rem;
+  font-size: 0.88rem;
 }
 
 .order-status-card strong {
@@ -1645,46 +1647,468 @@ textarea {
   background: #999;
 }
 
-.order-status-card.received .order-status-dot { background: #4f7cac; }
-.order-status-card.preparing .order-status-dot { background: #d58a20; }
-.order-status-card.route .order-status-dot { background: #7559c9; }
-.order-status-card.delivered .order-status-dot { background: #2f8a5b; }
-.order-status-card.cancelled .order-status-dot { background: #c64a4a; }
+.order-status-card.received .order-status-dot {
+  background: #4f7cac;
+}
+.order-status-card.preparing .order-status-dot {
+  background: #d58a20;
+}
+.order-status-card.route .order-status-dot {
+  background: #7559c9;
+}
+.order-status-card.delivered .order-status-dot {
+  background: #2f8a5b;
+}
+.order-status-card.cancelled .order-status-dot {
+  background: #c64a4a;
+}
 
-.order-status-card.received.active { border-color: #4f7cac; background: #f1f6fc; }
-.order-status-card.preparing.active { border-color: #d58a20; background: #fff8e8; }
-.order-status-card.route.active { border-color: #7559c9; background: #f5f2ff; }
-.order-status-card.delivered.active { border-color: #2f8a5b; background: #eef9f3; }
-.order-status-card.cancelled.active { border-color: #c64a4a; background: #fff2f2; }
+.order-status-card.received.active {
+  border-color: #4f7cac;
+  background: #f1f6fc;
+}
+.order-status-card.preparing.active {
+  border-color: #d58a20;
+  background: #fff8e8;
+}
+.order-status-card.route.active {
+  border-color: #7559c9;
+  background: #f5f2ff;
+}
+.order-status-card.delivered.active {
+  border-color: #2f8a5b;
+  background: #eef9f3;
+}
+.order-status-card.cancelled.active {
+  border-color: #c64a4a;
+  background: #fff2f2;
+}
 
 .status-filter-help {
   margin: 0 0 14px 2px;
   color: var(--muted);
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
 
 /* Cada fila conserva una señal de color suave según el estado. */
 .data-table tbody tr.order-row {
   border-left: 4px solid transparent;
-  transition: background .15s ease;
+  transition: background 0.15s ease;
 }
-.data-table tbody tr.order-row:hover { filter: brightness(.985); }
-.data-table tbody tr.status-recibido { background: #f4f8fd; border-left-color: #4f7cac; }
-.data-table tbody tr.status-preparando { background: #fffaf0; border-left-color: #d58a20; }
-.data-table tbody tr.status-en_camino { background: #f7f4ff; border-left-color: #7559c9; }
-.data-table tbody tr.status-entregado { background: #f1faf5; border-left-color: #2f8a5b; }
-.data-table tbody tr.status-cancelado { background: #fff4f4; border-left-color: #c64a4a; }
+.data-table tbody tr.order-row:hover {
+  filter: brightness(0.985);
+}
+.data-table tbody tr.status-recibido {
+  background: #f4f8fd;
+  border-left-color: #4f7cac;
+}
+.data-table tbody tr.status-preparando {
+  background: #fffaf0;
+  border-left-color: #d58a20;
+}
+.data-table tbody tr.status-en_camino {
+  background: #f7f4ff;
+  border-left-color: #7559c9;
+}
+.data-table tbody tr.status-entregado {
+  background: #f1faf5;
+  border-left-color: #2f8a5b;
+}
+.data-table tbody tr.status-cancelado {
+  background: #fff4f4;
+  border-left-color: #c64a4a;
+}
 
-.order-status-select.status-recibido { border-color: #9bb9da; background: #f4f8fd; }
-.order-status-select.status-preparando { border-color: #e3bd79; background: #fffaf0; }
-.order-status-select.status-en_camino { border-color: #b3a4e6; background: #f7f4ff; }
-.order-status-select.status-entregado { border-color: #8fc7aa; background: #f1faf5; }
-.order-status-select.status-cancelado { border-color: #e0a0a0; background: #fff4f4; }
+.order-status-select.status-recibido {
+  border-color: #9bb9da;
+  background: #f4f8fd;
+}
+.order-status-select.status-preparando {
+  border-color: #e3bd79;
+  background: #fffaf0;
+}
+.order-status-select.status-en_camino {
+  border-color: #b3a4e6;
+  background: #f7f4ff;
+}
+.order-status-select.status-entregado {
+  border-color: #8fc7aa;
+  background: #f1faf5;
+}
+.order-status-select.status-cancelado {
+  border-color: #e0a0a0;
+  background: #fff4f4;
+}
 
 @media (max-width: 1100px) {
-  .order-status-filters { grid-template-columns: repeat(3, minmax(140px, 1fr)); }
+  .order-status-filters {
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
-  .order-status-filters { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+  .order-status-filters {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+}
+
+/* ===== Comentario por producto en el carrito del cliente ===== */
+.note-add {
+  margin-top: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1.5px dashed #e8a317;
+  border-radius: 999px;
+  background: #fff6d6;
+  color: #7a4a00;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.note-add:hover {
+  background: #ffefb0;
+}
+.note-saved {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: #fff6d6;
+  border: 1.5px solid var(--accent);
+  color: #5c3a00;
+  font-weight: 700;
+  font-size: 0.82rem;
+  word-break: break-word;
+}
+.note-saved button {
+  border: 0;
+  background: none;
+  color: #a33300;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.note-editor {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #fff6d6;
+  border: 2px solid var(--brand);
+}
+.note-editor label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #5c3a00;
+}
+.note-editor textarea {
+  width: 100%;
+  height: 58px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border: 1.5px solid #f0c9a8;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  resize: none;
+  background: #fff;
+  color: var(--ink);
+}
+.note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.note-count {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.note-btn {
+  min-height: 34px;
+  padding: 0 14px;
+  margin-left: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+.note-btn.ghost {
+  background: #fff;
+  color: var(--ink);
+  border: 1.5px solid #f0c9a8;
+}
+/* Nota que se ve en la página de seguimiento */
+.summary-note {
+  display: block;
+  margin-top: 4px;
+  width: fit-content;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fff1b8;
+  border: 1.5px solid var(--accent);
+  color: #5c3a00;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+/* ===== Admin: columna de resumen y botón Ver detalle ===== */
+.items-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1.5px solid #f0c9a8;
+  font-weight: 800;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.detail-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--brand-dark);
+  white-space: nowrap;
+}
+.detail-btn:hover {
+  background: var(--brand-dark);
+}
+
+/* ===== Admin: ventana de detalle del pedido ===== */
+.od-card {
+  width: min(540px, 100%);
+  padding: 0;
+  overflow: auto;
+  border-radius: 26px;
+}
+.od-loading {
+  padding: 40px 24px;
+  text-align: center;
+  font-weight: 700;
+}
+.od-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px;
+  background: var(--brand);
+  color: #fff;
+}
+.od-head h2 {
+  margin: 2px 0 8px;
+  font-size: 1.7rem;
+  font-weight: 900;
+}
+.od-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.od-date {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+.od-close {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.od-pill {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: #fff;
+  background: #3b6fb6;
+}
+.od-pill.preparando {
+  background: var(--accent);
+  color: #4a2b00;
+}
+.od-pill.en_camino {
+  background: #7a4bc2;
+}
+.od-pill.entregado {
+  background: var(--success);
+}
+.od-pill.cancelado {
+  background: #b42318;
+}
+.od-label {
+  margin: 16px 24px 6px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a33300;
+}
+.od-client {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 24px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.od-client strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+.od-items {
+  margin: 0 24px;
+}
+.od-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1.5px dashed var(--line);
+}
+.od-qty {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 6px;
+  border-radius: 12px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+.od-item-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.od-note {
+  width: fit-content;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: #fff1b8;
+  border: 1.5px solid var(--accent);
+  color: #5c3a00;
+  font-size: 0.8rem;
+  font-weight: 800;
+  word-break: break-word;
+}
+.od-totals {
+  margin: 8px 24px 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fff0ea;
+}
+.od-totals > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+.od-totals .od-grand {
+  margin: 6px 0 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--brand);
+}
+.od-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px 22px;
+}
+.od-btn {
+  flex: 1;
+  min-height: 46px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 14px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--brand-dark);
+}
+.od-btn.ghost {
+  background: #fff;
+  color: var(--ink);
+  border: 1.5px solid #f0c9a8;
+  box-shadow: none;
+}
+
+/* ===== Aviso del horario de domicilios ===== */
+.hours-banner {
+  margin: 10px 0 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #fff6d6;
+  border: 1.5px solid var(--accent);
+  color: #5c3a00;
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.hours-card {
+  width: min(430px, 100%);
+  text-align: center;
+  border-top: 8px solid var(--brand);
+}
+.hours-card h2 {
+  margin: 6px 0 10px;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--brand);
+}
+.hours-card p {
+  margin: 0 0 18px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.hours-icon {
+  font-size: 2.4rem;
+}
+.hours-actions {
+  display: flex;
+  gap: 10px;
+}
+.hours-btn {
+  flex: 1;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--brand-dark);
+}
+.hours-btn.ghost {
+  background: #fff;
+  color: var(--ink);
+  border: 1.5px solid #f0c9a8;
+  box-shadow: none;
 }

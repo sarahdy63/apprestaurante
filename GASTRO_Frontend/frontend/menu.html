@@ -73,7 +73,8 @@
                 <span>Subtotal</span><strong data-subtotal>$0</strong>
               </div>
               <div class="total-row">
-                <span>Domicilio</span><strong data-shipping>$0</strong>
+                <span>Domicilio</span
+                ><strong data-shipping>Según tu barrio</strong>
               </div>
               <div class="total-row grand">
                 <span>Total</span><span data-total>$0</span>
@@ -110,7 +111,12 @@
           <button class="close" data-close="checkoutModal">×</button>
         </div>
         <div class="info-box">
-          <strong>Total a pagar: </strong><span data-total></span>
+          <div>Subtotal: <strong data-subtotal>$0</strong></div>
+          <div>
+            Domicilio: <strong data-shipping>Elige tu barrio</strong>
+            <span data-zone class="small"></span>
+          </div>
+          <div><strong>Total a pagar: </strong><span data-total></span></div>
         </div>
         <form id="checkoutForm" class="form-grid">
           <div class="field">
@@ -153,30 +159,11 @@
           <div class="field">
             <label>Barrio</label>
             <select id="barrioSelect" required>
-              <option value="">Selecciona tu barrio</option>
-              <option value="Las Granjas">Las Granjas</option>
-              <option value="Campo Nuñez">Campo Nuñez</option>
-              <option value="Altico">Altico</option>
-              <option value="Diego de Ospina">Diego de Ospina</option>
-              <option value="Quirinal">Quirinal</option>
-              <option value="Ipanema">Ipanema</option>
-              <option value="Galindo">Galindo</option>
-              <option value="Chapinero">Chapinero</option>
-              <option value="Los Alpes">Los Alpes</option>
-              <option value="Las Mercedes">Las Mercedes</option>
-              <option value="Candido">Candido</option>
-              <option value="Calixto">Calixto</option>
-              <option value="Kennedy">Kennedy</option>
-              <option value="otro">Otro (especificar)</option>
+              <option value="">Cargando barrios...</option>
             </select>
-          </div>
-          <div class="field" id="barrioOtroWrap" style="display: none">
-            <label>Especifica tu barrio</label>
-            <input
-              id="barrioOtroInput"
-              maxlength="40"
-              placeholder="Nombre del barrio"
-            />
+            <small class="small">
+              Solo aparecen los barrios donde hacemos domicilio.
+            </small>
           </div>
           <div class="field full">
             <label>Dirección / referencia</label>

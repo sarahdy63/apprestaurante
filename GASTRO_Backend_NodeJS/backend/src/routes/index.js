@@ -12,6 +12,8 @@ const products = require("../controllers/productController");
 const orders = require("../controllers/orderController");
 // Importa el controlador de información del restaurante.
 const restaurant = require("../controllers/restaurantController");
+// Importa el controlador de barrios y zonas de domicilio.
+const neighborhoods = require("../controllers/neighborhoodController");
 // Crea una instancia de router de Express.
 const router = express.Router();
 // Expone un endpoint simple para comprobar que la API está activa.
@@ -25,6 +27,8 @@ router.patch("/auth/cambiarcontrasenia", auth.cambiarContrasenia);
 router.post("/auth/verificarcodigo", auth.verificarCodigo);
 // Expone el catálogo público de productos activos.
 router.get("/products", products.list);
+// Expone los barrios con cobertura y el valor del domicilio de cada uno.
+router.get("/neighborhoods", neighborhoods.list);
 // Expone la creación pública de pedidos desde el carrito.
 router.post("/orders", orders.create);
 // Expone el seguimiento público de un pedido mediante su código.

@@ -379,6 +379,34 @@ const ordersState = {
   date: "",
 };
 
+// Orden en que avanza un pedido y nombres para mostrar.
+const ORDER_FLOW = ["RECIBIDO", "PREPARANDO", "EN_CAMINO", "ENTREGADO"];
+const ORDER_LABELS = {
+  RECIBIDO: "Recibido",
+  PREPARANDO: "Preparando",
+  EN_CAMINO: "En camino",
+  ENTREGADO: "Entregado",
+  CANCELADO: "Cancelado",
+};
+
+// Arma el desplegable de estado: solo quedan activos el actual y el siguiente.
+// "Cancelado" solo se activa cuando el pedido está en PREPARANDO.
+// El resto se ve en gris y no se puede elegir. Si el pedido está cerrado, se bloquea todo.
+function orderStatusSelect(o) {
+  const closed = o.status === "ENTREGADO" || o.status === "CANCELADO";
+  const index = ORDER_FLOW.indexOf(o.status);
+  const options = [...ORDER_FLOW, "CANCELADO"]
+    .map((value) => {
+      const isCurrent = value === o.status;
+      const isNext = index >= 0 && ORDER_FLOW[index + 1] === value;
+      const isCancel = value === "CANCELADO" && o.status === "PREPARANDO";
+      const enabled = isCurrent || isNext || isCancel;
+      return `<option value="${value}" ${isCurrent ? "selected" : ""} ${enabled ? "" : "disabled"}>${ORDER_LABELS[value]}</option>`;
+    })
+    .join("");
+  return `<select class="order-status-select status-${o.status.toLowerCase()}" ${closed ? "disabled" : ""} onchange="changeOrderStatus(${o.id}, this.value)">${options}</select>`;
+}
+
 async function loadDashboard() {
   const tbody = document.querySelector("#ordersBody");
   if (!tbody) return;
@@ -405,11 +433,16 @@ async function loadDashboard() {
       summary.salesToday,
     );
     // Actualiza los contadores de las tarjetas de estado superiores.
-    document.querySelector("#statusCountReceived").textContent = summary.received || 0;
-    document.querySelector("#statusCountPreparing").textContent = summary.preparing || 0;
-    document.querySelector("#statusCountRoute").textContent = summary.routes || 0;
-    document.querySelector("#statusCountDelivered").textContent = summary.delivered || 0;
-    document.querySelector("#statusCountCancelled").textContent = summary.cancelled || 0;
+    document.querySelector("#statusCountReceived").textContent =
+      summary.received || 0;
+    document.querySelector("#statusCountPreparing").textContent =
+      summary.preparing || 0;
+    document.querySelector("#statusCountRoute").textContent =
+      summary.routes || 0;
+    document.querySelector("#statusCountDelivered").textContent =
+      summary.delivered || 0;
+    document.querySelector("#statusCountCancelled").textContent =
+      summary.cancelled || 0;
     // Ahora los pedidos vienen dentro de result.data.
     const orders = result.data;
     if (!orders.length) {
@@ -418,7 +451,7 @@ async function loadDashboard() {
       tbody.innerHTML = orders
         .map(
           (o) =>
-            `<tr class="order-row status-${o.status.toLowerCase()}"><td>#${o.code}</td><td>${o.customer}</td><td>${o.products}</td><td>${adminMoney(o.total)}</td><td><select class="order-status-select status-${o.status.toLowerCase()}" onchange="changeOrderStatus(${o.id}, this.value)"><option value="RECIBIDO" ${o.status === "RECIBIDO" ? "selected" : ""}>Recibido</option><option value="PREPARANDO" ${o.status === "PREPARANDO" ? "selected" : ""}>Preparando</option><option value="EN_CAMINO" ${o.status === "EN_CAMINO" ? "selected" : ""}>En camino</option><option value="ENTREGADO" ${o.status === "ENTREGADO" ? "selected" : ""}>Entregado</option><option value="CANCELADO" ${o.status === "CANCELADO" ? "selected" : ""}>Cancelado</option></select></td><td><a href="tracking.html?code=${encodeURIComponent(o.code)}" target="_blank">Ver</a></td></tr>`,
+            `<tr class="order-row status-${o.status.toLowerCase()}"><td>#${o.code}</td><td>${o.customer}</td><td><span class="items-chip">${Number(o.itemsCount || 0)} ${Number(o.itemsCount) === 1 ? "producto" : "productos"}</span></td><td>${adminMoney(o.total)}</td><td>${orderStatusSelect(o)}</td><td><button class="detail-btn" onclick="openOrderDetail('${o.code}')">Ver detalle</button></td></tr>`,
         )
         .join("");
     }
@@ -503,7 +536,9 @@ function syncOrderStatusCards() {
 
   const select = document.querySelector("#orderStatusFilter");
   // Si solo hay un estado, también se refleja en el select. Con varios, queda en "Todos".
-  if (select) select.value = ordersState.statuses.length === 1 ? ordersState.statuses[0] : "";
+  if (select)
+    select.value =
+      ordersState.statuses.length === 1 ? ordersState.statuses[0] : "";
 
   const help = document.querySelector("#activeStatusHelp");
   if (help) {
@@ -539,6 +574,13 @@ function setupOrderStatusCards() {
 }
 
 async function changeOrderStatus(id, status) {
+  // Antes de cancelar pide confirmación, porque la cancelación no se puede deshacer.
+  if (
+    status === "CANCELADO" &&
+    !confirm("¿Seguro que deseas cancelar este pedido? No se puede deshacer.")
+  ) {
+    return loadDashboard();
+  }
   try {
     await adminApi(`/admin/orders/${id}/status`, {
       method: "PATCH",
@@ -547,6 +589,92 @@ async function changeOrderStatus(id, status) {
     await loadDashboard();
   } catch (error) {
     alert(error.message);
+    // Recarga la tabla para que el desplegable vuelva al estado real del pedido.
+    await loadDashboard();
+  }
+}
+
+// ---------- Ventana de detalle del pedido ----------
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// Crea la ventana una sola vez y la reutiliza.
+function ensureOrderDetailModal() {
+  let modal = document.querySelector("#orderDetailModal");
+  if (modal) return modal;
+  modal = document.createElement("div");
+  modal.id = "orderDetailModal";
+  modal.className = "modal";
+  modal.innerHTML =
+    '<div class="modal-card od-card" id="orderDetailBody"></div>';
+  // Se cierra al hacer clic en el fondo oscuro.
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeOrderDetail();
+  });
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function closeOrderDetail() {
+  document.querySelector("#orderDetailModal")?.classList.remove("open");
+}
+
+async function openOrderDetail(code) {
+  const modal = ensureOrderDetailModal();
+  const body = document.querySelector("#orderDetailBody");
+  body.innerHTML = '<div class="od-loading">Cargando pedido…</div>';
+  modal.classList.add("open");
+  try {
+    const o = await adminApi(`/orders/code/${encodeURIComponent(code)}`);
+    const statusKey = String(o.status || "").toLowerCase();
+    const created = o.created_at
+      ? new Date(o.created_at).toLocaleString("es-CO", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : "";
+    const items = o.items
+      .map(
+        (i) =>
+          `<div class="od-item"><span class="od-qty">${i.quantity}×</span><div class="od-item-main"><strong>${escapeHtml(i.name)}</strong>${i.note ? `<span class="od-note">Nota: ${escapeHtml(i.note)}</span>` : ""}</div><strong>${adminMoney(i.lineTotal)}</strong></div>`,
+      )
+      .join("");
+    body.innerHTML = `
+      <div class="od-head">
+        <div>
+          <span class="od-eyebrow">Detalle del pedido</span>
+          <h2>#${escapeHtml(o.code)}</h2>
+          <span class="od-pill ${statusKey}">${ORDER_LABELS[o.status] || o.status}</span>
+          ${created ? `<span class="od-date">${created}</span>` : ""}
+        </div>
+        <button class="od-close" onclick="closeOrderDetail()" aria-label="Cerrar">×</button>
+      </div>
+      <div class="od-label">Cliente</div>
+      <div class="od-client">
+        <strong>${escapeHtml(o.customer_first_name)} ${escapeHtml(o.customer_last_name)}</strong>
+        <span>${escapeHtml(o.phone)}</span>
+        <span>${escapeHtml(o.neighborhood)} · ${escapeHtml(o.address)}</span>
+        <span>Pago: ${escapeHtml(o.payment_method)}</span>
+      </div>
+      <div class="od-label">Productos</div>
+      <div class="od-items">${items}</div>
+      <div class="od-totals">
+        <div><span>Subtotal</span><strong>${adminMoney(o.subtotal)}</strong></div>
+        <div><span>Domicilio</span><strong>${adminMoney(o.shipping_fee)}</strong></div>
+        <div class="od-grand"><span>Total</span><strong>${adminMoney(o.total)}</strong></div>
+      </div>
+      <div class="od-actions">
+        <a class="od-btn ghost" href="tracking.html?code=${encodeURIComponent(o.code)}" target="_blank">Ver seguimiento</a>
+        <button class="od-btn" onclick="closeOrderDetail()">Cerrar</button>
+      </div>`;
+  } catch (error) {
+    body.innerHTML = `<div class="od-loading">${escapeHtml(error.message)}</div><div class="od-actions"><button class="od-btn" onclick="closeOrderDetail()">Cerrar</button></div>`;
   }
 }
 
@@ -564,7 +692,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .querySelector("#productForm")
     ?.addEventListener("submit", saveProduct);
   setupOrderFilters();
-setupOrderStatusCards();
+  setupOrderStatusCards();
   setupInventoryFilters();
   loadAdminProducts();
   loadDashboard();

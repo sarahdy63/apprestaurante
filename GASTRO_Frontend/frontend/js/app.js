@@ -4,6 +4,10 @@ let cart = JSON.parse(localStorage.getItem("gastroCart") || "[]");
 // Valor mínimo del pedido (solo productos, sin domicilio) para poder pedir.
 const MIN_ORDER = 30000;
 
+// Barrios con cobertura que llegan del backend, y el barrio que eligió el cliente.
+let NEIGHBORHOODS = [];
+let selectedNeighborhood = null;
+
 // Subtotal de los productos del carrito.
 const getSubtotal = () => cart.reduce((a, i) => a + Number(i.price) * i.qty, 0);
 const money = (value) =>
@@ -141,7 +145,11 @@ function renderCart() {
         )
         .join("");
   const subtotal = cart.reduce((a, i) => a + Number(i.price) * i.qty, 0);
-  const shipping = subtotal ? 6000 : 0;
+  // El domicilio depende de la zona del barrio; mientras no haya barrio no se suma.
+  const shipping =
+    subtotal && selectedNeighborhood
+      ? Number(selectedNeighborhood.shippingFee)
+      : 0;
 
   // Aviso de pedido mínimo
   const hint = document.querySelector("#minOrderHint");
@@ -156,11 +164,49 @@ function renderCart() {
     .forEach((x) => (x.textContent = money(subtotal)));
   document
     .querySelectorAll("[data-shipping]")
-    .forEach((x) => (x.textContent = money(shipping)));
+    .forEach(
+      (x) =>
+        (x.textContent = selectedNeighborhood
+          ? money(shipping)
+          : "Según tu barrio"),
+    );
+  document
+    .querySelectorAll("[data-zone]")
+    .forEach(
+      (x) =>
+        (x.textContent = selectedNeighborhood
+          ? `(zona ${selectedNeighborhood.zone})`
+          : ""),
+    );
   document
     .querySelectorAll("[data-total]")
     .forEach((x) => (x.textContent = money(subtotal + shipping)));
 }
+// Trae los barrios con cobertura y llena la lista "Barrio" del formulario.
+async function loadNeighborhoods() {
+  const select = document.querySelector("#barrioSelect");
+  if (!select) return;
+  try {
+    NEIGHBORHOODS = await api("/neighborhoods");
+    // Agrupa los barrios por zona para que la lista sea fácil de leer.
+    const zones = [...new Set(NEIGHBORHOODS.map((n) => n.zone))];
+    select.innerHTML =
+      '<option value="">Selecciona tu barrio</option>' +
+      zones
+        .map((zone) => {
+          const options = NEIGHBORHOODS.filter((n) => n.zone === zone)
+            .map((n) => `<option value="${n.id}">${n.name}</option>`)
+            .join("");
+          const fee = NEIGHBORHOODS.find((n) => n.zone === zone).shippingFee;
+          return `<optgroup label="${zone} - domicilio ${money(fee)}">${options}</optgroup>`;
+        })
+        .join("");
+  } catch (error) {
+    select.innerHTML =
+      '<option value="">No se pudieron cargar los barrios</option>';
+  }
+}
+
 // Dibuja el mismo footer en todas las páginas que tengan <footer id="siteFooter">.
 function renderFooter() {
   const footer = document.querySelector("#siteFooter");
@@ -238,17 +284,14 @@ function soloNumeros(input, maxLength) {
 
 async function confirmOrder(e) {
   e.preventDefault();
-  const barrioSelect = document.querySelector("#barrioSelect");
-  const neighborhood =
-    barrioSelect.value === "otro"
-      ? document.querySelector("#barrioOtroInput").value.trim()
-      : barrioSelect.value;
+  // Se envía el id del barrio; el backend busca su nombre y la tarifa del domicilio.
+  const neighborhoodId = Number(document.querySelector("#barrioSelect").value);
   const body = {
     customer: {
       firstName: document.querySelector("#nombreInput").value.trim(),
       lastName: document.querySelector("#apellidoInput").value.trim(),
       phone: document.querySelector("#telefonoInput").value.trim(),
-      neighborhood,
+      neighborhoodId,
       address: document.querySelector("#direccionInput").value.trim(),
     },
     paymentMethod: document.querySelector("#metodoPagoSelect").value,
@@ -420,13 +463,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#terminosCheck")?.addEventListener("change", (e) => {
     e.target.closest(".terms-check")?.classList.remove("error");
   });
-  const barrioSelect = document.querySelector("#barrioSelect");
-  const barrioOtroWrap = document.querySelector("#barrioOtroWrap");
-  const barrioOtroInput = document.querySelector("#barrioOtroInput");
-  barrioSelect?.addEventListener("change", () => {
-    const other = barrioSelect.value === "otro";
-    barrioOtroWrap.style.display = other ? "flex" : "none";
-    barrioOtroInput.required = other;
-    if (!other) barrioOtroInput.value = "";
+  // Al elegir el barrio se recalcula el domicilio y el total.
+  loadNeighborhoods();
+  document.querySelector("#barrioSelect")?.addEventListener("change", (e) => {
+    selectedNeighborhood =
+      NEIGHBORHOODS.find((n) => n.id === Number(e.target.value)) || null;
+    renderCart();
   });
 });

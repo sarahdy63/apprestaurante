@@ -83,7 +83,7 @@ async function recuperarContrasenia(req, res, next) {
     );
 
     await pool.query(
-      // 7. Guarda el nuevo código en la tabla codes (vence en 15 minutos).
+      // 7. Guarda el nuevo código en la tabla codes (vence en 2 minutos).
       "INSERT INTO codes (user_id, code_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 2 MINUTE))",
       [user.id, codeHash],
     );
