@@ -1,27 +1,20 @@
-// Importa el pool de MySQL.
 const pool = require("../config/db");
-// Valor mínimo de los productos (sin domicilio) para aceptar un pedido.
-// El valor del domicilio ya no es fijo: sale de la zona del barrio (tablas neighborhoods y delivery_zones).
+const getDeliveryHours = require("../utils/deliveryHours");
 const MIN_ORDER = 30000;
-// Crea un código público legible para identificar el pedido.
+const NOTE_CATEGORIES = ["Hamburguesas", "Picadas", "Salchipapas"];
 function createCode() {
-  // Combina la hora actual con un número aleatorio y conserva cinco dígitos.
   return `GD-${String(Date.now()).slice(-4)}${Math.floor(Math.random() * 10)}`;
 }
-// Registra un pedido enviado por un cliente.
 async function create(req, res, next) {
-  // Solicita una conexión exclusiva porque se usará una transacción.
   const connection = await pool.getConnection();
-  // Inicia un bloque que permite hacer rollback ante cualquier fallo.
   try {
-    // Extrae los datos del cliente y los productos solicitados.
+    const hours = getDeliveryHours();
+    if (!hours.open) return res.status(403).json({ message: hours.message });
     const { customer, items, paymentMethod = "Pago contra entrega" } = req.body;
-    // Valida que exista un cliente y al menos un producto.
     if (!customer || !Array.isArray(items) || !items.length)
       return res
         .status(400)
         .json({ message: "El pedido debe incluir cliente y productos." });
-    // Verifica que cada cantidad sea un entero positivo antes de calcular valores.
     if (
       items.some(
         (item) =>
@@ -32,41 +25,34 @@ async function create(req, res, next) {
       return res.status(400).json({
         message: "Las cantidades deben ser enteros mayores que cero.",
       });
-    // Valida que el cliente haya elegido un barrio de la lista.
     const neighborhoodId = Number(customer.neighborhoodId);
     if (!Number.isInteger(neighborhoodId) || neighborhoodId <= 0)
       return res
         .status(400)
         .json({ message: "Selecciona un barrio de la lista." });
-    // Busca el barrio y la tarifa de su zona en MySQL (no se confía en el valor del navegador).
     const [barrios] = await connection.query(
       "SELECT n.id, n.name, z.shipping_fee FROM neighborhoods n JOIN delivery_zones z ON z.id = n.zone_id WHERE n.id = ? AND n.active = 1 LIMIT 1",
       [neighborhoodId],
     );
-    // Rechaza el pedido si el barrio no existe o ya no tiene cobertura.
     if (!barrios.length)
       return res.status(400).json({
-        message: "Lo sentimos, por ahora no tenemos cobertura de domicilio en ese barrio.",
+        message:
+          "Lo sentimos, por ahora no tenemos cobertura de domicilio en ese barrio.",
       });
     const barrio = barrios[0];
-    // Extrae todos los identificadores de producto recibidos.
     const ids = items.map((item) => Number(item.productId));
-    // Crea los signos ? necesarios para una consulta IN segura.
     const placeholders = ids.map(() => "?").join(",");
-    // Consulta en MySQL precios reales para no confiar en los precios del navegador.
     const [products] = await connection.query(
-      `SELECT id, name, price, stock FROM products WHERE active = 1 AND id IN (${placeholders})`,
+      `SELECT p.id, p.name, p.price, p.stock, c.name AS category FROM products p JOIN categories c ON c.id = p.category_id WHERE p.active = 1 AND p.id IN (${placeholders})`,
       ids,
-    ); // Rechaza el pedido si algún id no corresponde a un producto activo.
+    );
     if (products.length !== new Set(ids).size)
       return res
         .status(400)
         .json({ message: "Uno o más productos no existen o están inactivos." });
-    // Crea un mapa para encontrar rápidamente cada producto por su id.
     const productMap = new Map(
       products.map((product) => [product.id, product]),
     );
-    // Calcula el subtotal usando exclusivamente los precios obtenidos de MySQL.
     const subtotal = items.reduce(
       (sum, item) =>
         sum +
@@ -74,21 +60,15 @@ async function create(req, res, next) {
       0,
     );
 
-    // Rechaza pedidos por debajo del mínimo para domicilio.
     if (subtotal < MIN_ORDER)
       return res.status(400).json({
         message: `El pedido mínimo para domicilio es de $${MIN_ORDER.toLocaleString("es-CO")}. Te faltan $${(MIN_ORDER - subtotal).toLocaleString("es-CO")}.`,
       });
 
-    // El costo del domicilio es la tarifa de la zona del barrio elegido.
     const shipping = Number(barrio.shipping_fee);
-    // Calcula el total final que quedará persistido.
     const total = subtotal + shipping;
-    // Genera el código visible del pedido.
     const code = createCode();
-    // Inicia la transacción de base de datos.
     await connection.beginTransaction();
-    // Inserta la cabecera del pedido.
     const [orderResult] = await connection.query(
       "INSERT INTO orders (code, customer_first_name, customer_last_name, phone, neighborhood_id, neighborhood, address, payment_method, subtotal, shipping_fee, total, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'RECIBIDO')",
       [
@@ -105,44 +85,40 @@ async function create(req, res, next) {
         total,
       ],
     );
-    // Recorre cada producto para registrar su detalle y una copia histórica del precio/nombre.
     for (const item of items) {
-      // Busca la información real del producto.
       const product = productMap.get(Number(item.productId));
-      // Convierte la cantidad a número.
       const quantity = Number(item.quantity);
-      // Descuenta el stock solo si todavía alcanza (si no, no toca nada).
       const [stockResult] = await connection.query(
         "UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?",
         [quantity, product.id, quantity],
       );
-      // Si no se modificó ninguna fila, es porque no hay suficiente stock.
       if (stockResult.affectedRows === 0) {
-        // Deshace todo lo que se alcanzó a guardar de este pedido.
         await connection.rollback();
-        // Responde con un mensaje amable y la cantidad que sí hay.
         return res.status(409).json({
           message: `Ups, lo sentimos no contamos con esa cantidad de "${product.name}" disponible en el local.`,
           productId: product.id,
           available: product.stock,
         });
       }
-      // Inserta el detalle asociado al pedido.
+      const note = NOTE_CATEGORIES.includes(product.category)
+        ? String(item.note || "")
+            .trim()
+            .slice(0, 150) || null
+        : null;
       await connection.query(
-        "INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, line_total) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, note, line_total) VALUES (?, ?, ?, ?, ?, ?, ?)",
         [
           orderResult.insertId,
           product.id,
           product.name,
           product.price,
           quantity,
+          note,
           product.price * quantity,
         ],
       );
     }
-    // Confirma todos los INSERT de la transacción.
     await connection.commit();
-    // Devuelve el pedido recién creado al frontend.
     return res.status(201).json({
       id: orderResult.insertId,
       code,
@@ -151,60 +127,40 @@ async function create(req, res, next) {
       total,
       status: "RECIBIDO",
     });
-    // Captura cualquier fallo durante la operación.
   } catch (error) {
-    // Revierte cualquier cambio parcial de la transacción.
     await connection.rollback();
-    // Delega el error al middleware global.
     return next(error);
-    // Siempre se ejecuta al terminar.
   } finally {
-    // Devuelve la conexión al pool.
     connection.release();
   }
 }
-// Busca un pedido público por su código.
 async function getByCode(req, res, next) {
-  // Inicia el manejo de errores.
   try {
-    // Consulta la cabecera usando el código de la URL.
     const [orders] = await pool.query(
       "SELECT * FROM orders WHERE code = ? LIMIT 1",
       [req.params.code],
     );
-    // Obtiene el primer resultado.
     const order = orders[0];
-    // Devuelve 404 si no hay coincidencias.
     if (!order)
       return res.status(404).json({ message: "Pedido no encontrado." });
-    // Consulta los productos asociados a ese pedido.
     const [items] = await pool.query(
-      "SELECT product_id AS productId, product_name AS name, unit_price AS unitPrice, quantity, line_total AS lineTotal FROM order_items WHERE order_id = ?",
+      "SELECT product_id AS productId, product_name AS name, unit_price AS unitPrice, quantity, note, line_total AS lineTotal FROM order_items WHERE order_id = ?",
       [order.id],
     );
-    // Devuelve cabecera y detalle en una sola respuesta.
     return res.json({ ...order, items });
-    // Captura errores.
   } catch (error) {
-    // Delega el error.
     return next(error);
   }
 }
-// Lista pedidos para el panel administrativo, con paginación, búsqueda y filtros.
 async function list(req, res, next) {
   try {
-    // Página pedida (mínimo 1) y cantidad por página (entre 1 y 100, por defecto 10).
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
-    // Cuántos pedidos saltar para llegar a esa página.
     const offset = (page - 1) * limit;
 
-    // Texto que escribió el admin en el buscador (puede venir vacío).
     const q = (req.query.q || "").trim();
-    // Lista de condiciones y sus valores, según los filtros que lleguen.
     const conditions = [];
     const params = [];
-    // Búsqueda por código, nombre del cliente o teléfono.
     if (q) {
       conditions.push(
         "(o.code LIKE ? OR CONCAT(o.customer_first_name, ' ', o.customer_last_name) LIKE ? OR o.phone LIKE ?)",
@@ -212,8 +168,6 @@ async function list(req, res, next) {
       const like = `%${q}%`;
       params.push(like, like, like);
     }
-    // Filtro por uno o varios estados. El frontend puede enviar, por ejemplo:
-    // ?status=RECIBIDO,PREPARANDO,EN_CAMINO
     const allowedStatuses = [
       "RECIBIDO",
       "PREPARANDO",
@@ -229,29 +183,24 @@ async function list(req, res, next) {
       conditions.push(`o.status IN (${statuses.map(() => "?").join(",")})`);
       params.push(...statuses);
     }
-    // Filtro por día (formato AAAA-MM-DD).
     const date = (req.query.date || "").trim();
     if (date) {
       conditions.push("DATE(o.created_at) = ?");
       params.push(date);
     }
-    // Une todas las condiciones; si no hay ninguna, no filtra nada.
     const where = conditions.length ? "WHERE " + conditions.join(" AND ") : "";
 
-    // Trae los pedidos de esta página que cumplen los filtros.
     const [rows] = await pool.query(
-      "SELECT o.id, o.code, CONCAT(o.customer_first_name, ' ', o.customer_last_name) AS customer, o.phone, o.neighborhood, o.address, o.total, o.status, o.created_at, GROUP_CONCAT(CONCAT(oi.quantity, ' x ', oi.product_name) SEPARATOR ', ') AS products FROM orders o JOIN order_items oi ON oi.order_id = o.id " +
+      "SELECT o.id, o.code, CONCAT(o.customer_first_name, ' ', o.customer_last_name) AS customer, o.phone, o.neighborhood, o.address, o.total, o.status, o.created_at, GROUP_CONCAT(CONCAT(oi.quantity, ' x ', oi.product_name) SEPARATOR ', ') AS products, CAST(SUM(oi.quantity) AS UNSIGNED) AS itemsCount FROM orders o JOIN order_items oi ON oi.order_id = o.id " +
         where +
         " GROUP BY o.id ORDER BY o.created_at DESC LIMIT ? OFFSET ?",
       [...params, limit, offset],
     );
-    // Cuenta el total con las MISMAS condiciones, para que las páginas salgan bien.
     const [countResult] = await pool.query(
       "SELECT COUNT(*) AS total FROM orders o " + where,
       params,
     );
 
-    // Devuelve la página, los totales y los pedidos.
     return res.json({
       total: countResult[0].total,
       page,
@@ -264,9 +213,7 @@ async function list(req, res, next) {
   }
 }
 
-// Cambia el estado operativo de un pedido y devuelve el stock si se cancela.
 async function updateStatus(req, res, next) {
-  // Conexión exclusiva porque usa transacción.
   const connection = await pool.getConnection();
   try {
     const allowed = [
@@ -282,7 +229,6 @@ async function updateStatus(req, res, next) {
     const id = Number(req.params.id);
 
     await connection.beginTransaction();
-    // Lee el estado actual y bloquea la fila mientras se actualiza.
     const [rows] = await connection.query(
       "SELECT status FROM orders WHERE id = ? FOR UPDATE",
       [id],
@@ -292,7 +238,16 @@ async function updateStatus(req, res, next) {
       return res.status(404).json({ message: "Pedido no encontrado." });
     }
     const previous = rows[0].status;
-    // Un pedido cancelado no se reactiva, para no descontar stock dos veces.
+    if (
+      status === "CANCELADO" &&
+      previous !== "CANCELADO" &&
+      !["RECIBIDO", "PREPARANDO"].includes(previous)
+    ) {
+      await connection.rollback();
+      return res.status(400).json({
+        message: "Este pedido ya salió a entrega y no se puede cancelar.",
+      });
+    }
     if (previous === "CANCELADO" && status !== "CANCELADO") {
       await connection.rollback();
       return res
@@ -305,7 +260,6 @@ async function updateStatus(req, res, next) {
       id,
     ]);
 
-    // Si se está cancelando ahora, devuelve cada producto a su stock.
     if (status === "CANCELADO" && previous !== "CANCELADO") {
       const [items] = await connection.query(
         "SELECT product_id, quantity FROM order_items WHERE order_id = ?",
@@ -328,15 +282,11 @@ async function updateStatus(req, res, next) {
     connection.release();
   }
 }
-// Calcula indicadores básicos de ventas para el panel.
 async function summary(req, res, next) {
-  // Inicia el manejo de errores.
   try {
-    // Calcula total de pedidos y ventas del día actual.
     const [daily] = await pool.query(
       "SELECT COUNT(*) AS ordersToday, COALESCE(SUM(CASE WHEN status <> 'CANCELADO' THEN total ELSE 0 END), 0) AS salesToday FROM orders WHERE DATE(created_at) = CURDATE()",
     );
-    // Cuenta todos los estados en una sola consulta para alimentar las tarjetas superiores.
     const [statusCounts] = await pool.query(
       "SELECT " +
         "SUM(status = 'RECIBIDO') AS received, " +
@@ -346,11 +296,9 @@ async function summary(req, res, next) {
         "SUM(status = 'CANCELADO') AS cancelled " +
         "FROM orders",
     );
-    // Mantiene 'pending' por compatibilidad con el indicador actual Por preparar.
     const pending =
       Number(statusCounts[0].received || 0) +
       Number(statusCounts[0].preparing || 0);
-    // Devuelve los indicadores generales y los conteos individuales por estado.
     return res.json({
       ...daily[0],
       pending,
@@ -360,19 +308,14 @@ async function summary(req, res, next) {
       delivered: Number(statusCounts[0].delivered || 0),
       cancelled: Number(statusCounts[0].cancelled || 0),
     });
-    // Captura errores.
   } catch (error) {
-    // Delega el error.
     return next(error);
   }
 }
-// Permite que el cliente cancele su pedido solo mientras esté RECIBIDO.
 async function cancelByCode(req, res, next) {
-  // Conexión exclusiva porque usa transacción.
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    // Busca el pedido por su código y lo bloquea mientras se decide.
     const [rows] = await connection.query(
       "SELECT id, status FROM orders WHERE code = ? FOR UPDATE",
       [req.params.code],
@@ -382,12 +325,10 @@ async function cancelByCode(req, res, next) {
       return res.status(404).json({ message: "Pedido no encontrado." });
     }
     const order = rows[0];
-    // Si ya estaba cancelado, se avisa con un mensaje claro y no se toca nada.
     if (order.status === "CANCELADO") {
       await connection.rollback();
       return res.status(409).json({ message: "Este pedido ya fue cancelado." });
     }
-    // Solo se puede cancelar mientras el administrador no lo haya pasado a PREPARANDO.
     if (order.status !== "RECIBIDO") {
       await connection.rollback();
       return res.status(409).json({
@@ -395,12 +336,10 @@ async function cancelByCode(req, res, next) {
           "Este pedido ya no se puede cancelar porque ya está en preparación o fue entregado.",
       });
     }
-    // Marca el pedido como cancelado.
     await connection.query(
       "UPDATE orders SET status = 'CANCELADO' WHERE id = ?",
       [order.id],
     );
-    // Devuelve cada producto a su stock.
     const [items] = await connection.query(
       "SELECT product_id, quantity FROM order_items WHERE order_id = ?",
       [order.id],
@@ -423,8 +362,11 @@ async function cancelByCode(req, res, next) {
     connection.release();
   }
 }
-// Exporta las funciones del controlador.
+function deliveryHours(req, res) {
+  return res.json(getDeliveryHours());
+}
 module.exports = {
+  deliveryHours,
   create,
   getByCode,
   list,

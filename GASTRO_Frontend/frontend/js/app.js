@@ -16,8 +16,18 @@ const money = (value) =>
     currency: "COP",
     maximumFractionDigits: 0,
   }).format(Number(value || 0));
+// Evita que el texto escrito por el cliente se interprete como HTML.
+const escapeText = (text) =>
+  String(text ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
+
 // Muestra un aviso flotante y amable en vez de un alert feo.
-function showToast(message) {
+function showToast(message, duration = 3500) {
   let toast = document.querySelector("#toast");
   if (!toast) {
     toast = document.createElement("div");
@@ -28,7 +38,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
   clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => toast.classList.remove("show"), 3500);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), duration);
 }
 
 async function api(path, options = {}) {
@@ -49,9 +59,58 @@ function saveCart() {
 }
 
 function updateBadge() {
+  const count = cart.reduce((a, i) => a + i.qty, 0);
   document
     .querySelectorAll("[data-cart-count]")
-    .forEach((x) => (x.textContent = cart.reduce((a, i) => a + i.qty, 0)));
+    .forEach((x) => (x.textContent = count));
+  const fab = document.querySelector("#cartFab");
+  if (fab) fab.hidden = !count || fab.dataset.cartVisible === "1";
+}
+
+// En celular agrega el botón de tres rayitas que abre y cierra el menú de navegación.
+function setupMobileNav() {
+  const topbar = document.querySelector(".topbar");
+  const links = topbar?.querySelector(".nav-links");
+  if (!links) return;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "nav-toggle";
+  button.setAttribute("aria-label", "Abrir menú");
+  button.setAttribute("aria-expanded", "false");
+  button.innerHTML = "<span></span><span></span><span></span>";
+  button.addEventListener("click", () => {
+    const open = topbar.classList.toggle("nav-open");
+    button.setAttribute("aria-expanded", String(open));
+  });
+  (
+    topbar.querySelector(".nav-right") || topbar.querySelector(".nav")
+  ).appendChild(button);
+  links
+    .querySelectorAll("a")
+    .forEach((a) =>
+      a.addEventListener("click", () => topbar.classList.remove("nav-open")),
+    );
+}
+
+// En el menú, en celular, muestra un botón flotante que baja hasta "Tu pedido".
+function setupCartFab() {
+  const cartPanel = document.querySelector("#cart");
+  if (!cartPanel) return;
+  const fab = document.createElement("button");
+  fab.type = "button";
+  fab.id = "cartFab";
+  fab.className = "cart-fab";
+  fab.hidden = true;
+  fab.innerHTML =
+    'Ver mi pedido <span class="cart-fab-count" data-cart-count>0</span>';
+  fab.addEventListener("click", () =>
+    cartPanel.scrollIntoView({ behavior: "smooth", block: "start" }),
+  );
+  document.body.appendChild(fab);
+  new IntersectionObserver(([entry]) => {
+    fab.dataset.cartVisible = entry.isIntersecting ? "1" : "";
+    updateBadge();
+  }).observe(cartPanel);
 }
 
 function addToCart(id) {
@@ -97,6 +156,67 @@ function changeQty(id, delta) {
   if (row.qty <= 0) cart = cart.filter((x) => Number(x.id) !== Number(id));
   saveCart();
 }
+// Producto del carrito cuyo comentario se está escribiendo.
+let editingNoteId = null;
+
+// Solo estas categorías permiten agregar comentario.
+const NOTE_CATEGORIES = ["Hamburguesas", "Picadas", "Salchipapas"];
+
+// Arma el bloque del comentario que va debajo de cada producto del carrito.
+function cartNoteHtml(item) {
+  if (!NOTE_CATEGORIES.includes(item.category)) return "";
+  if (Number(editingNoteId) === Number(item.id))
+    return `<div class="item-note"><div class="note-editor"><textarea id="note-${item.id}" maxlength="150" rows="2" placeholder="Ej: sin cebolla, salsas aparte">${escapeText(item.note)}</textarea><div class="note-actions"><button type="button" class="note-cancel" onclick="cancelNote()">Cancelar</button><button type="button" class="note-save" onclick="saveNote(${item.id})">Aceptar</button></div></div></div>`;
+  if (item.note)
+    return `<div class="item-note"><div class="cmt-saved"><span class="cmt-check">✓ Comentario agregado</span><button type="button" class="note-link" onclick="editNote(${item.id})">Editar comentario</button></div></div>`;
+  return `<div class="item-note"><button type="button" class="note-link" onclick="editNote(${item.id})">+ Agregar comentario</button></div>`;
+}
+
+function editNote(id) {
+  editingNoteId = id;
+  renderCart();
+  document.querySelector(`#note-${id}`)?.focus();
+}
+
+function cancelNote() {
+  editingNoteId = null;
+  renderCart();
+}
+
+function saveNote(id) {
+  const row = cart.find((x) => Number(x.id) === Number(id));
+  const field = document.querySelector(`#note-${id}`);
+  if (row && field) row.note = field.value.trim().slice(0, 150);
+  editingNoteId = null;
+  saveCart();
+}
+
+// Comentario de un producto ya pedido: un botón "Ver comentario" que abre una nota con X para cerrarla.
+let openNoteKey = null;
+
+function noteDetailHtml(note, key, title = "") {
+  if (!note) return "";
+  const heading = title ? `<span class="note-pop-title">${title}</span>` : "";
+  return `<div class="note-detail"><button type="button" class="note-chip" onclick="openNoteDetail('${key}')">💬 Ver comentario</button><div class="note-pop" data-note-key="${key}" hidden><button type="button" class="note-pop-close" onclick="closeNoteDetail()" aria-label="Cerrar">×</button>${heading}<p>${escapeText(note)}</p></div></div>`;
+}
+
+function openNoteDetail(key) {
+  openNoteKey = key;
+  restoreOpenNote();
+}
+
+function closeNoteDetail() {
+  openNoteKey = null;
+  restoreOpenNote();
+}
+
+// Deja abierta solo la nota elegida, incluso después de que la tabla se vuelve a dibujar.
+function restoreOpenNote() {
+  document
+    .querySelectorAll(".note-pop")
+    .forEach((pop) => (pop.hidden = pop.dataset.noteKey !== openNoteKey));
+}
+
 // Quita un producto del carrito de una vez, sin importar cuántas unidades tenga.
 function removeFromCart(id) {
   cart = cart.filter((x) => Number(x.id) !== Number(id));
@@ -141,7 +261,7 @@ function renderCart() {
     : cart
         .map(
           (i) =>
-            `<div class="cart-item"><img src="${i.img || ""}" alt="${i.name}"><div><strong>${i.name}</strong><div class="small">${money(i.price)}</div><div class="qty"><button onclick="changeQty(${i.id},-1)">−</button><span>${i.qty}</span><button onclick="changeQty(${i.id},1)">+</button></div></div><div class="cart-item-end"><button class="remove-btn" onclick="removeFromCart(${i.id})" title="Quitar del pedido" aria-label="Quitar ${i.name} del pedido">×</button><strong>${money(i.price * i.qty)}</strong></div></div>`,
+            `<div class="cart-item"><img src="${i.img || ""}" alt="${i.name}"><div><strong>${i.name}</strong><div class="small">${money(i.price)}</div><div class="qty"><button onclick="changeQty(${i.id},-1)">−</button><span>${i.qty}</span><button onclick="changeQty(${i.id},1)">+</button></div></div><div class="cart-item-end"><button class="remove-btn" onclick="removeFromCart(${i.id})" title="Quitar del pedido" aria-label="Quitar ${i.name} del pedido">×</button><strong>${money(i.price * i.qty)}</strong></div>${cartNoteHtml(i)}</div>`,
         )
         .join("");
   const subtotal = cart.reduce((a, i) => a + Number(i.price) * i.qty, 0);
@@ -245,9 +365,23 @@ function openModal(id) {
 function closeModal(id) {
   document.getElementById(id)?.classList.remove("open");
 }
-function intentarConfirmar() {
+async function intentarConfirmar() {
   if (!cart.length)
     return alert("Tu carrito está vacío. Agrega productos antes de continuar.");
+
+  // Validación 0: horario de domicilios.
+  try {
+    const hours = await api("/delivery-hours");
+    if (!hours.open) {
+      showToast(hours.message, 6000);
+      return;
+    }
+  } catch (error) {
+    showToast(
+      "No pudimos verificar el horario. Intenta de nuevo en un momento.",
+    );
+    return;
+  }
 
   // Validación 1: pedido mínimo.
   const subtotal = getSubtotal();
@@ -295,7 +429,11 @@ async function confirmOrder(e) {
       address: document.querySelector("#direccionInput").value.trim(),
     },
     paymentMethod: document.querySelector("#metodoPagoSelect").value,
-    items: cart.map((item) => ({ productId: item.id, quantity: item.qty })),
+    items: cart.map((item) => ({
+      productId: item.id,
+      quantity: item.qty,
+      note: NOTE_CATEGORIES.includes(item.category) ? item.note || "" : "",
+    })),
   };
   try {
     const order = await api("/orders", {
@@ -397,10 +535,11 @@ async function loadTracking() {
     if (summary)
       summary.innerHTML = order.items
         .map(
-          (i) =>
-            `<div class="summary-item"><span class="qty-badge">${i.quantity}×</span><span class="summary-name">${i.name}</span><strong>${money(i.lineTotal)}</strong></div>`,
+          (i, index) =>
+            `<div class="summary-item"><span class="qty-badge">${i.quantity}×</span><span class="summary-name">${i.name}${noteDetailHtml(i.note, `t${index}`)}</span><strong>${money(i.lineTotal)}</strong></div>`,
         )
         .join("");
+    restoreOpenNote();
 
     // Datos de entrega, uno debajo del otro.
     const delivery = document.querySelector("#orderDeliveryInfo");
@@ -429,6 +568,8 @@ async function loadTracking() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  setupMobileNav();
+  setupCartFab();
   loadProducts();
   renderFooter();
   renderCart();

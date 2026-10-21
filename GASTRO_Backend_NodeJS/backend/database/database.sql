@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 -- ---------------------------------------------------------------------
 -- 8. Tabla de detalle de productos incluidos en cada pedido.
+--    note guarda el comentario del cliente para ese producto (ej: sin cebolla).
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS order_items (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -132,6 +133,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   product_name VARCHAR(160) NOT NULL,
   unit_price DECIMAL(12,2) NOT NULL,
   quantity INT UNSIGNED NOT NULL,
+  note VARCHAR(150) NULL,
   line_total DECIMAL(12,2) NOT NULL,
   CONSTRAINT fk_items_order FOREIGN KEY (order_id) REFERENCES orders(id),
   CONSTRAINT fk_items_product FOREIGN KEY (product_id) REFERENCES products(id),

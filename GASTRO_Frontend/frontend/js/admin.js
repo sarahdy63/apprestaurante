@@ -133,7 +133,7 @@ function renderInventory() {
     tbody.innerHTML = pageRows
       .map((p) => {
         const s = stockStatus(p.stock);
-        return `<tr><td>${p.id}</td><td>${p.name}${p.active ? "" : ' <span class="small">(retirado)</span>'}</td><td>${p.category}</td><td>${adminMoney(p.price)}</td><td><strong>${p.stock}</strong></td><td><span class="stock-badge ${s.key}"><span class="dot"></span>${s.label}</span></td><td><button class="link-button" onclick="editProduct(${p.id})">Editar</button> · <button class="link-button danger" onclick="deleteProduct(${p.id})">Eliminar</button></td></tr>`;
+        return `<tr><td data-label="ID">${p.id}</td><td data-label="Producto">${p.name}${p.active ? "" : ' <span class="small">(retirado)</span>'}</td><td data-label="Categoría">${p.category}</td><td data-label="Precio">${adminMoney(p.price)}</td><td data-label="Stock"><strong>${p.stock}</strong></td><td data-label="Estado del stock"><span class="stock-badge ${s.key}"><span class="dot"></span>${s.label}</span></td><td data-label="Acciones"><button class="link-button" onclick="editProduct(${p.id})">Editar</button> · <button class="link-button danger" onclick="deleteProduct(${p.id})">Eliminar</button></td></tr>`;
       })
       .join("");
   }
@@ -390,7 +390,7 @@ const ORDER_LABELS = {
 };
 
 // Arma el desplegable de estado: solo quedan activos el actual y el siguiente.
-// "Cancelado" solo se activa cuando el pedido está en PREPARANDO.
+// "Cancelado" se activa cuando el pedido está en RECIBIDO o PREPARANDO; desde EN_CAMINO ya no.
 // El resto se ve en gris y no se puede elegir. Si el pedido está cerrado, se bloquea todo.
 function orderStatusSelect(o) {
   const closed = o.status === "ENTREGADO" || o.status === "CANCELADO";
@@ -399,7 +399,9 @@ function orderStatusSelect(o) {
     .map((value) => {
       const isCurrent = value === o.status;
       const isNext = index >= 0 && ORDER_FLOW[index + 1] === value;
-      const isCancel = value === "CANCELADO" && o.status === "PREPARANDO";
+      const isCancel =
+        value === "CANCELADO" &&
+        (o.status === "RECIBIDO" || o.status === "PREPARANDO");
       const enabled = isCurrent || isNext || isCancel;
       return `<option value="${value}" ${isCurrent ? "selected" : ""} ${enabled ? "" : "disabled"}>${ORDER_LABELS[value]}</option>`;
     })
@@ -451,7 +453,7 @@ async function loadDashboard() {
       tbody.innerHTML = orders
         .map(
           (o) =>
-            `<tr class="order-row status-${o.status.toLowerCase()}"><td>#${o.code}</td><td>${o.customer}</td><td><span class="items-chip">${Number(o.itemsCount || 0)} ${Number(o.itemsCount) === 1 ? "producto" : "productos"}</span></td><td>${adminMoney(o.total)}</td><td>${orderStatusSelect(o)}</td><td><button class="detail-btn" onclick="openOrderDetail('${o.code}')">Ver detalle</button></td></tr>`,
+            `<tr class="order-row status-${o.status.toLowerCase()}"><td data-label="Pedido">#${o.code}</td><td data-label="Cliente">${o.customer}</td><td data-label="Productos"><span class="items-chip">${Number(o.itemsCount || 0)} ${Number(o.itemsCount) === 1 ? "producto" : "productos"}</span></td><td data-label="Total">${adminMoney(o.total)}</td><td data-label="Estado">${orderStatusSelect(o)}</td><td data-label="Acción"><button class="detail-btn" onclick="openOrderDetail('${o.code}')">Ver detalle</button></td></tr>`,
         )
         .join("");
     }
@@ -628,6 +630,7 @@ function closeOrderDetail() {
 async function openOrderDetail(code) {
   const modal = ensureOrderDetailModal();
   const body = document.querySelector("#orderDetailBody");
+  openNoteKey = null;
   body.innerHTML = '<div class="od-loading">Cargando pedido…</div>';
   modal.classList.add("open");
   try {
@@ -641,8 +644,8 @@ async function openOrderDetail(code) {
       : "";
     const items = o.items
       .map(
-        (i) =>
-          `<div class="od-item"><span class="od-qty">${i.quantity}×</span><div class="od-item-main"><strong>${escapeHtml(i.name)}</strong>${i.note ? `<span class="od-note">Nota: ${escapeHtml(i.note)}</span>` : ""}</div><strong>${adminMoney(i.lineTotal)}</strong></div>`,
+        (i, index) =>
+          `<div class="od-item"><span class="od-qty">${i.quantity}×</span><div class="od-item-main"><strong>${escapeHtml(i.name)}</strong>${noteDetailHtml(i.note, `d${index}`, "Comentario del cliente")}</div><strong>${adminMoney(i.lineTotal)}</strong></div>`,
       )
       .join("");
     body.innerHTML = `

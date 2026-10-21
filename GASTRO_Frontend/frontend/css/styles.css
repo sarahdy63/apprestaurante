@@ -2112,3 +2112,447 @@ textarea {
   border: 1.5px solid #f0c9a8;
   box-shadow: none;
 }
+
+/* Comentario por producto en el carrito */
+.item-note {
+  grid-column: 1 / -1;
+}
+.note-link {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  color: var(--brand);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.note-link:hover {
+  text-decoration: underline;
+}
+.note-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fff4cc;
+  border-left: 4px solid var(--accent);
+  font-size: 0.85rem;
+}
+.note-text {
+  color: var(--ink);
+  font-style: italic;
+  word-break: break-word;
+}
+.note-editor {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px dashed var(--accent);
+}
+.note-editor textarea {
+  width: 100%;
+  resize: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.88rem;
+}
+.note-editor textarea:focus {
+  outline: 2px solid var(--accent);
+  border-color: transparent;
+}
+.note-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.note-save,
+.note-cancel {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.note-save {
+  background: var(--success);
+  color: #fff;
+}
+.note-save:hover {
+  filter: brightness(1.1);
+}
+.note-cancel {
+  background: #f3ece6;
+  color: var(--muted);
+}
+
+/* "Ver comentario" en el seguimiento y en el detalle del pedido */
+.note-detail {
+  margin-top: 4px;
+}
+.note-chip {
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 11px;
+  background: #e3f4ea;
+  color: var(--success);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.note-chip:hover {
+  background: var(--success);
+  color: #fff;
+}
+.note-pop {
+  position: relative;
+  margin-top: 6px;
+  max-width: 260px;
+  padding: 12px 34px 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border-top: 4px solid var(--success);
+  box-shadow: var(--shadow);
+  font-weight: 400;
+}
+.note-pop[hidden] {
+  display: none;
+}
+.note-pop-title {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--success);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.note-pop p {
+  margin: 0;
+  font-size: 0.88rem;
+  word-break: break-word;
+}
+.note-pop-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: #fdecea;
+  color: #b42318;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.od-item-main .note-detail {
+  margin-top: 6px;
+}
+
+.cmt-saved {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cmt-check {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #e3f4ea;
+  color: var(--success);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Iconos del carrito y del administrador en el encabezado */
+.nav-right {
+  gap: 16px;
+}
+.admin-access {
+  position: static;
+  transform: none;
+}
+.nav-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.45);
+}
+@media (max-width: 680px) {
+  .nav {
+    gap: 12px;
+  }
+  .nav-right {
+    gap: 12px;
+  }
+  .nav-links {
+    display: none;
+  }
+}
+
+/* =========================================================
+   Responsive general (cliente y administrador)
+   ========================================================= */
+.layout-menu > *,
+.admin-main {
+  min-width: 0;
+}
+.note-chip {
+  white-space: nowrap;
+}
+
+/* Botón de tres rayitas del menú en celular */
+.nav-toggle {
+  display: none;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.nav-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: #fff;
+  transition: 0.25s;
+}
+.topbar.nav-open .nav-toggle span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.topbar.nav-open .nav-toggle span:nth-child(2) {
+  opacity: 0;
+}
+.topbar.nav-open .nav-toggle span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Botón flotante "Ver mi pedido" */
+.cart-fab {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .cart-fab {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+  .cart-fab-count {
+    min-width: 22px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--ink);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  /* Panel del administrador: barra superior compacta */
+  .sidebar {
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar .logo {
+    flex-shrink: 0;
+    margin: 0 10px 0 0;
+  }
+  .sidebar {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .sidebar .logo-img {
+    height: 64px;
+  }
+  .side-link {
+    margin: 0;
+    padding: 8px 12px;
+  }
+  .admin-top {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 680px) {
+  .nav-toggle {
+    display: flex;
+  }
+  .topbar .nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 6px 20px 12px;
+    background: var(--brand-dark);
+    box-shadow: var(--shadow);
+  }
+  .topbar.nav-open .nav-links {
+    display: flex;
+  }
+  .topbar .nav-links a,
+  .topbar .nav-links a:not(.cart-link) {
+    display: block;
+    padding: 13px 2px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .topbar .nav-links a:last-child {
+    border-bottom: 0;
+  }
+
+  /* Panel del administrador en celular */
+  .admin-main {
+    padding: 16px;
+  }
+  .admin-top h1 {
+    font-size: 1.6rem;
+  }
+  .stats {
+    gap: 10px;
+  }
+  .stat strong {
+    font-size: 1.3rem;
+  }
+  .filters > * {
+    flex: 1 1 100%;
+  }
+  .filters input[type="search"] {
+    min-width: 0;
+  }
+
+  .od-actions {
+    flex-direction: column;
+  }
+  .toast {
+    width: calc(100% - 32px);
+  }
+}
+
+/* Menú de productos en pantallas medianas */
+@media (min-width: 981px) and (max-width: 1240px) {
+  .layout-menu {
+    grid-template-columns: 180px 1fr 280px;
+    gap: 28px;
+  }
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+/* Tablas del administrador en pantallas medianas */
+@media (max-width: 1240px) {
+  .admin-shell {
+    grid-template-columns: 190px 1fr;
+  }
+  .data-table {
+    min-width: 0;
+  }
+  .data-table th,
+  .data-table td {
+    padding: 10px 8px;
+  }
+}
+
+@media (max-width: 980px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Las tablas se vuelven tarjetas */
+  .table-wrap {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .data-table {
+    min-width: 0;
+  }
+  .data-table thead {
+    display: none;
+  }
+  .data-table,
+  .data-table tbody,
+  .data-table tr,
+  .data-table td {
+    display: block;
+    width: 100%;
+  }
+  .data-table tr {
+    margin-bottom: 12px;
+    padding: 4px 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+  }
+  .data-table td {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--line);
+    text-align: right;
+  }
+  .data-table td:last-child {
+    border-bottom: 0;
+  }
+  .data-table td::before {
+    content: attr(data-label);
+    margin-right: auto;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-align: left;
+  }
+  .data-table td[colspan] {
+    display: block;
+    text-align: center;
+  }
+  .data-table td[colspan]::before {
+    content: none;
+  }
+  .pagination {
+    justify-content: center;
+    text-align: center;
+  }
+}
